@@ -65,6 +65,7 @@ def normalize_variable(variable):
     if total_sum == 0:
         raise ValueError("No significant correlations found for normalization.")
     normalized = np.abs(variable) / total_sum
+
     return normalized
 
 
@@ -77,9 +78,14 @@ def calculate_entropy(normalized_variable):
 
     # Scaling constant
     k = 1 / np.log(n) if n > 1 else 0
+
+    # Apply a small offset to avoid log(0)
+    offset = 1e-10
+    entropy = -k * ((normalized_variable + offset) * np.log(normalized_variable + offset)).sum(skipna=True).item()
+
     
     # Calculate the entropy
-    entropy = -k * (normalized_variable * np.log(normalized_variable)).sum(skipna=True).item()
+    # entropy = -k * (normalized_variable * np.log(normalized_variable)).sum(skipna=True).item()
 
     return entropy
 
@@ -127,6 +133,32 @@ def construct_exposure_index(normalized_variables, weights):
 
     return exposure_index
 
+def log_transform(variable):
+    """Apply a logarithmic transformation to compress high values."""
+    return xr.where(variable > 0, np.log1p(variable), 0)  # log(1 + x) to handle zeros safely
+
+def z_score_normalization(variable):
+    """Normalize using Z-score standardization."""
+    mean = variable.mean(skipna=True)
+    std = variable.std(skipna=True)
+    return (variable - mean) / std
+def quantile_normalization(variable):
+    """Normalize using percentile-based scaling."""
+    q_min = variable.quantile(0.01, skipna=True)
+    q_max = variable.quantile(0.99, skipna=True)
+    return (variable - q_min) / (q_max - q_min)
+def min_max_normalization(variable):
+    min_val = variable.min(skipna=True)  # Ignore NaNs when calculating min
+    max_val = variable.max(skipna=True)  # Ignore NaNs when calculating max
+    
+    # Avoid division by zero if max and min are the same
+    if min_val == max_val:
+        return xr.full_like(variable, 0)  # Return array of zeros if no variation
+
+    normalized = (variable - min_val) / (max_val - min_val)
+    return normalized
+
+
 
 def run(enso):
     """
@@ -170,10 +202,14 @@ def run(enso):
 
     # Step 4: Construct exposure index
     exposure_index = construct_exposure_index(normalized_signals, weights)
-    exposure_index = exposure_index * 1e6
+    # exposure_index = exposure_index * 1e6
 
     # Scaling index
-    exposure_index = (exposure_index - exposure_index.min())/(exposure_index.max() - exposure_index.min())
+    # exposure_index = normalize_variable(exposure_index)
+    # exposure_index = log_transform(exposure_index)
+    # exposure_index = z_score_normalization(exposure_index)
+    # exposure_index = quantile_normalization(exposure_index)
+    exposure_index = min_max_normalization(exposure_index)
 
     exposure_index.plot()
     plt.ticklabel_format(style='plain', axis='both', useOffset=False) 
