@@ -87,8 +87,8 @@ def run():
 
         # Load entropy-weighted exposure maps
     exposure_maps = {
-        "exp_el_nino": rxr.open_rasterio("./outputs/rasters/exposure_EWM_nino.tif", masked=True).where(lambda x: x != 0),
-        "exp_la_nina": rxr.open_rasterio("./outputs/rasters/exposure_EWM_nina.tif", masked=True).where(lambda x: x != 0),
+        "exp_el_nino": rxr.open_rasterio("./outputs/raster/exposure_EWM_nino.tif", masked=True).where(lambda x: x != 0),
+        "exp_la_nina": rxr.open_rasterio("./outputs/raster/exposure_EWM_nina.tif", masked=True).where(lambda x: x != 0),
     }
 
     # Plotting
