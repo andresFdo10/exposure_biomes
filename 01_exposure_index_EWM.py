@@ -20,7 +20,7 @@ def exposure_signal(var, enso):
     """
 
     # Build the path to the input raster
-    path = f"./outputs/rasters/aligned_{var}_{enso}_60yrs.tif"
+    path = f"./outputs/raster/aligned_{var}_{enso}_60yrs.tif"
 
     # Check if the file exists
     if not os.path.isfile(path):
@@ -216,7 +216,7 @@ def run(enso):
     plt.show()
 
     # Save the result to a GeoTIFF
-    exposure_index.rio.to_raster(f"./outputs/rasters/exposure_EWM_{enso}.tif")
+    exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}.tif")
 
 if __name__ == "__main__":
-    run(enso="nina")
+    run(enso="nino")

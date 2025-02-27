@@ -6,8 +6,8 @@ import os
 def run():
 
     # Define input/output folders
-    raster_folder = "./inputs/rasters/biogeography/"
-    output_folder = "./outputs/rasters/"
+    raster_folder = "./inputs/raster/biogeography/"
+    output_folder = "./outputs/raster/"
     os.makedirs(output_folder, exist_ok=True) # Ensure output folder exists
 
     raster_files = glob.glob(os.path.join(raster_folder, "*.tif")) # Get all the .tif files in the folder
