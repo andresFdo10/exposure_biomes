@@ -105,9 +105,6 @@ def run():
             loss_by_year = dict(zip(ecoregion_loss['umd_tree_cover_loss__year'], ecoregion_loss['umd_tree_cover_loss__ha']))
             print(f'Loss by Year for {ecoregion_name}:')
             print(loss_by_year)
-            # Update the GeoDataFrame for the "Bahia coastal forests" row
-            # ecoregion_name = "Bahia coastal forests"
-            
             for year, loss_value in loss_by_year.items():
                 column_name = f"treecover_loss_{year}_50"
                 if column_name in exposure_nino.columns:
