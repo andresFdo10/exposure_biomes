@@ -6,23 +6,28 @@ import matplotlib.pyplot as plt
 
 def load_gfw_data(ecoregion, threshold, data):
     data_name = data  # Use = for assignment, not == for comparison
+    path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"  # Default path
+
     if data_name == "treecover_extent":
-        path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"
         data_name = "treecover_extent_2000__ha.csv"
     elif data_name == "treecover_loss":
-        path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"
         data_name = "treecover_loss__ha.csv"
     elif data_name == "primary_forest":
-        path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"
-        data_name = "treecover_extent_in_primary_forests_2001_tropics_only__ha.csv"
+        data_name = "treecover_extent_2000_in_primary_forests_2001_tropics_only__ha.csv"
     elif data_name == "primary_forest_loss":
-        path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"
         data_name = "treecover_loss_in_primary_forests_2001_tropics_only__ha.csv"
-    elif data_name == "treecover_loss_by_fire":
-        path_name = f"./inputs/04_csv/{ecoregion}/treecover_{threshold}/"
+    elif data_name == "treecover_loss_by_fires":  # Correct the condition
         data_name = "treecover_loss_from_fires_by_region__ha.csv"
+    else:
+        raise ValueError(f"Unsupported data type '{data}' passed to load_gfw_data()")
 
-    gfw = pd.read_csv(f"{path_name}{data_name}")
+    file_path = f"{path_name}{data_name}"
+
+    # Ensure file exists before reading
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    gfw = pd.read_csv(file_path)
     gfw['Ecoregion'] = ecoregion
 
     return gfw
@@ -58,20 +63,6 @@ def compute_relative_deforestation_rate(ecoregions_gdf, target_ecoregions):
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "relative_loss_rate"] = relative_rate
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "total_loss"] = total_loss
             
-            # # Compute annual deforestation rate
-            # for year in range(2002, 2024):
-            #     prev_year = year - 1
-            #     loss_current = loss_by_year.get(year, 0)
-            #     loss_previous = loss_by_year.get(prev_year, 0)
-                
-            #     if loss_previous > 0:
-            #         rate = ((loss_current - loss_previous) / loss_previous) * 100
-            #     else:
-            #         rate = 0
-                
-            #     rate_column_name = f"lossRate_{year}_50"
-            #     ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, rate_column_name] = rate
-        
         # Primary forest loss
         primary_forest_loss = ecoregions_gdf[ecoregions_gdf['ECO_NAME'] == ecoregion]
         if not primary_forest_loss.empty:
@@ -106,17 +97,21 @@ def compute_relative_deforestation_rate(ecoregions_gdf, target_ecoregions):
         if not loss_by_fires.empty:
             # Load tree cover loss data
             tc_loss_by_fires = load_gfw_data(ecoregion, 50, "treecover_loss_by_fires")
+
             if 'umd_tree_cover_loss__year' in tc_loss_by_fires.columns and 'umd_tree_cover_loss_from_fires__ha' in tc_loss_by_fires.columns:
-                loss_by_year = dict(zip(tc_loss_by_fires['umd_tree_cover_loss__year'], tc_loss_by_fires['umd_tree_cover_loss__ha']))
+                # FIX: Use correct mapping between year and loss
+                loss_by_year = dict(zip(tc_loss_by_fires['umd_tree_cover_loss__year'], tc_loss_by_fires['umd_tree_cover_loss_from_fires__ha']))
+
                 for year, loss_value in loss_by_year.items():
                     column_name = f"tc_loss_by_fires_{year}_50"
                     if column_name in ecoregions_gdf.columns:
                         ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, column_name] = loss_value
 
-            # Compute total loss from 2001 to 2023
-            total_loss = sum(loss_by_year.get(year, 0) for year in range(2001, 2024))
+                # Compute total loss from 2001 to 2023
+                total_loss = sum(loss_by_year.get(year, 0) for year in range(2001, 2024))
 
-            ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "total_tc_loss_by_fires"] = total_loss
+                ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "total_tc_loss_by_fires"] = total_loss
+
 
 
 
@@ -151,7 +146,7 @@ def compute_normalized_deforestation_velocity(ecoregions_gdf, target_ecoregions,
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "tc_loss_velocity"] = velocity
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "norm_tc_loss_rate"] = normalized_rate
 
-    return velocities, normalized_rates
+    return ecoregions_gdf
 
 def compute_normalized_primaryLoss_velocity(ecoregions_gdf, target_ecoregions, years):
     """Computes the annual deforestation velocity (ha/year) and normalizes it by initial tree cover."""
@@ -182,59 +177,7 @@ def compute_normalized_primaryLoss_velocity(ecoregions_gdf, target_ecoregions, y
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "primary_loss_velocity"] = velocity
             ecoregions_gdf.loc[ecoregions_gdf['ECO_NAME'] == ecoregion, "norm_primary_loss_rate"] = normalized_rate
 
-    return velocities, normalized_rates
-
-def plot_deforestation_trends(ecoregions_gdf, target_ecoregions):
-    years = list(range(2001, 2024))
-
-    plt.figure(figsize=(12, 6))
-
-    for ecoregion in target_ecoregions:
-        data = ecoregions_gdf[ecoregions_gdf['ECO_NAME'] == ecoregion]
-        losses = [data[f"treecover_loss_{year}_50"] for year in years]
-
-        plt.plot(years, losses, marker='o', label=ecoregion)
-
-    plt.xlabel("Year")
-    plt.ylabel("Tree Cover Loss (ha)")
-    plt.title("Deforestation Trends (2001-2023)")
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-
-def plot_deforestation_rate(ecoregions_gdf, target_ecoregions):
-    years = list(range(2002, 2024))
-
-    plt.figure(figsize=(12, 6))
-
-    for ecoregion in target_ecoregions:
-        data = ecoregions_gdf[ecoregions_gdf['ECO_NAME'] == ecoregion]
-        rates = [data[f"deforestation_rate_{year}_50"] for year in years]
-
-        plt.bar(years, rates, alpha=0.6, label=ecoregion)
-
-    plt.xlabel("Year")
-    plt.ylabel("Deforestation Rate (%)")
-    plt.title("Annual Change in Deforestation Rate (2002-2023)")
-    plt.axhline(y=0, color='black', linestyle='--')  # Reference line at 0%
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-def plot_normalized_deforestation_velocity(normalized_rates):
-    """Plots a bar chart comparing normalized deforestation velocity (percentage of initial tree cover lost per year)."""
-    ecoregions = list(normalized_rates.keys())
-    values = list(normalized_rates.values())
-
-    plt.figure(figsize=(12, 6))
-    plt.bar(ecoregions, values, color='orange')
-    plt.xlabel("Ecoregions")
-    plt.ylabel("Deforestation Velocity (% of Initial Tree Cover / year)")
-    plt.title("Comparison of Normalized Annual Deforestation Rate by Ecoregion (2001-2023)")
-    plt.xticks(rotation=45, ha='right')
-    plt.grid(axis='y')
-    plt.show()
+    return ecoregions_gdf
 
 
 def run():
@@ -248,22 +191,30 @@ def run():
     print('Available layers: ', layers)
 
     # Read the geopackage using geopandas
-    exposure_nino = gpd.read_file(path_gpkg, layer="Ecoregions_With_Deforestation_Velocity")
+    exposure_nino = gpd.read_file(path_gpkg, layer="ZonalStat_Ecoregions_EWM_nino_nina")
     print('Exposure El Nino')
     print(exposure_nino.head())
     print('\n')
 
     # Generate column names for tree cover loss from 2001 to 2023
     years = list(range(2001, 2024))
-    new_columns = [f"treecover_loss_{year}_50" for year in years]
+    new_columns = [f"tc_loss_{year}_50" for year in years]
 
     # Add new columns to the GeoDataFrame with default values 0
     for column in new_columns:
         exposure_nino[column] = float('nan')
 
-    print('\nGeoDataFrame with new columns:')
-    print(exposure_nino.head())
-    print('\n')
+
+    new_columns2 = [f"primary_loss_{year}_50" for year in years]
+    # Add new columns to the GeoDataFrame with default values 0
+    for column in new_columns2:
+        exposure_nino[column] = float('nan')
+
+    new_columns3 = [f"tc_loss_by_fires_{year}_50" for year in years]
+    # Add new columns to the GeoDataFrame with default values 0
+    for column in new_columns3:
+        exposure_nino[column] = float('nan')
+
     # Define targe ecoregions
     target_ecoregions = [
         'Bahia coastal forests', 
@@ -272,7 +223,7 @@ def run():
         'Cordillera Oriental montane forests',
         'Magdalena Valley montane forests',
         'Guianan lowland moist forests',
-        'Uatumã-Trombetas moist forests',
+        # 'Uatumã-Trombetas moist forests',
         'Tapajós-Xingu moist forests',
         'Xingu-Tocantins-Araguaia moist forests',
         'Guianan Highlands moist forests',
@@ -282,16 +233,16 @@ def run():
         'Magdalena-Urabá moist forests',
         'Chocó-Darién moist forests',
         'Apure-Villavicencio dry forests',
-        'Monte Alegre várzea',
-        'Guajira-Barranquilla xeric scrub',
+        # 'Monte Alegre várzea',
+        # 'Guajira-Barranquilla xeric scrub',
         'Maracaibo dry forests',
         'Catatumbo moist forests',
         'Magdalena Valley dry forests',
         'Lara-Falcón dry forests',
         'Paraguaná xeric scrub',
-        'Cordillera La Costa montane forests',
+        # 'Cordillera La Costa montane forests',
         'Cauca Valley dry forests',
-        'Eastern Panamanian montane forests',
+        # 'Eastern Panamanian montane forests',
         'Patía valley dry forests',
         'Venezuelan Andes montane forests'
         ]
@@ -299,20 +250,21 @@ def run():
     years = list(range(2001, 2024))
 
     print('\nUpdated GeoDataFrame for Bahia coastal forests:')
+
         
-    gdf_ecoregions =compute_relative_deforestation_rate(exposure_nino, target_ecoregions)
+    gdf_ecoregions = compute_relative_deforestation_rate(exposure_nino, target_ecoregions)
     print(gdf_ecoregions[gdf_ecoregions['ECO_NAME'] == "Bahia coastal forests"].columns)
 
     # Compute velocities and normalized rates for each ecoregion
-    velocities, normalized_rates = compute_normalized_deforestation_velocity(gdf_ecoregions, target_ecoregions, years)
-
-    plot_deforestation_trends(gdf_ecoregions, target_ecoregions)
-    # plot_deforestation_rate(gdf_ecoregions, target_ecoregions)
-    plot_normalized_deforestation_velocity(normalized_rates)
+    gdf_ecoregions = compute_normalized_deforestation_velocity(gdf_ecoregions, target_ecoregions, years)
+    gdf_ecoregions = compute_normalized_primaryLoss_velocity(gdf_ecoregions, target_ecoregions, years)
+    gdf_ecoregions['perc_loss_fires'] = (gdf_ecoregions['total_tc_loss_by_fires'] / gdf_ecoregions['total_loss']) * 100
+    print(gdf_ecoregions.columns)
 
     # Save results into the GeoPackage
-    output_layer_name = "Ecoregions_Loss_Fires"
+    output_layer_name = "Ecoregions_Loss"
     gdf_ecoregions.to_file(path_gpkg, layer=output_layer_name, driver="GPKG")
+
     
 
 if __name__ == "__main__":
