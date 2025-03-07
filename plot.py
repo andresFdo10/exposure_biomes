@@ -15,9 +15,9 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
     
     # Define columns to plot with their respective color ramps
     columns = [
-        ("EWMnino_median", "EWM Nino Median", "OrRd", (0, 1)),
-        ("EWMnina_median", "EWM Nina Median", "Blues", (0, 1)),
-        ("norm_tc_loss_rate", "Tree Cover Loss Velocity (%/year)", "Greys", None),
+        ("ZonalStat_Ecoregions_EWM_nino_EWMnino_median", "EWM Nino Median", "OrRd", (0, 1)),
+        ("ZonalStat_Ecoregions_EWM_nino_EWMnina_median","EWM Nina Median", "Blues", (0, 1)),
+        ("Loss_Per_Year_%", "Tree Cover Loss Velocity (%/year)", "Greys", None),
         ("perc_loss_fires", "Tree Cover Loss by fires (%)", "Greys", None)
     ]
     
@@ -47,10 +47,10 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
 
 def run():
     # Example usage
-    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"
-    layer_name = "Ecoregions_Loss"
-    borders_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"  # Replace with actual path
-    borders_layer = "Neotropical"  # Replace with actual layer name
+    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
+    layer_name = "zonal_statistics_v2"
+    borders_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"  # Replace with actual path
+    borders_layer = "Neotropic_Realm"  # Replace with actual layer name
     plot_2x2_geopackage_data(path_gpkg, layer_name, borders_layer)
 
 if __name__ == "__main__":
