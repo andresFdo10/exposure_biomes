@@ -17,8 +17,8 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
     columns = [
         ("ZonalStat_Ecoregions_EWM_nino_EWMnino_median", "EWM Nino Median", "OrRd", (0, 1)),
         ("ZonalStat_Ecoregions_EWM_nino_EWMnina_median","EWM Nina Median", "Blues", (0, 1)),
-        ("Loss_Per_Year_%", "Tree Cover Loss Velocity (%/year)", "Greys", None),
-        ("perc_loss_fires", "Tree Cover Loss by fires (%)", "Greys", None)
+        ("velocity", "Tree Cover Loss Velocity (%/year)", "Greys", None),
+        ("Loss_Fires_50%", "Tree Cover Loss by fires (%)", "Greys", None)
     ]
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
