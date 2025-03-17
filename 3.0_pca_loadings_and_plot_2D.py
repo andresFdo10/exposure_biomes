@@ -1,3 +1,4 @@
+import os
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -6,9 +7,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+import seaborn as sns
 
-
-import matplotlib.pyplot as plt
 
 def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=2):
     """
@@ -56,7 +56,7 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
 
     # ✅ Fix scatter plot: Proper column selection, remove scaling temporarily
     scatter = ax.scatter(
-        PC_scores.iloc[:, pc_x] * scalePC_x,  # Scale by 10 to fix visibility
+        PC_scores.iloc[:, pc_x] * scalePC_x,
         PC_scores.iloc[:, pc_y] * scalePC_y, 
         c=clusters, cmap='viridis', alpha=0.7
     )
@@ -74,6 +74,11 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
         ax.text(pca_loadings[pc_x - 1, i] * 1.03, pca_loadings[pc_y - 1, i] * 1.03, 
                 feature, fontsize=12)
 
+    # ✅ Annotate ECO_ID labels on the biplot
+    for i, row in PC_scores.iterrows():
+        ax.text(row.iloc[pc_x] * scalePC_x, row.iloc[pc_y] * scalePC_y, str(row["ECO_ID"]),
+                fontsize=8, ha='right', alpha=0.7, color='black')
+
     # ✅ Set axis limits and aspect ratio
     ax.set_xlim(-0.95, 0.95)
     ax.set_ylim(-0.95, 0.95)
@@ -86,8 +91,13 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
     # ✅ Set axis labels with explained variance
     ax.set_xlabel(f'PC{pc_x} ({explained_var_x:.2f}%)', fontsize=14)
     ax.set_ylabel(f'PC{pc_y} ({explained_var_y:.2f}%)', fontsize=14)
-    plt.savefig(f"./outputs/figures/PC{pc_x}_vs_PC{pc_y}.png", dpi=300, bbox_inches='tight')
 
+    # Export the plot
+    # Define the directory where the file will be saved
+    output_dir = "./outputs/figures/"
+    # Create the directory if it does not exist
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig(os.path.join(output_dir, f"PC{pc_x}_vs_PC{pc_y}.png"), dpi=300, bbox_inches='tight')
 
     # Show plot
     plt.show()
@@ -121,35 +131,6 @@ def plot_elbow_method(data, max_clusters=10):
     # Show plot
     plt.show()
 
-def find_best_clusters_silhouette(data, min_clusters=2, max_clusters=10):
-    """
-    Computes silhouette scores for different cluster numbers to determine the optimal k.
-
-    Parameters:
-    - data: PCA-transformed data
-    - min_clusters: Minimum number of clusters to test
-    - max_clusters: Maximum number of clusters to test
-    """
-    silhouette_scores = []
-
-    # Compute silhouette score for different cluster sizes
-    for k in range(min_clusters, max_clusters + 1):
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        cluster_labels = kmeans.fit_predict(data)
-        score = silhouette_score(data, cluster_labels)
-        silhouette_scores.append(score)
-
-    # Plot the Silhouette Score Graph
-    plt.figure(figsize=(8, 6))
-    plt.plot(range(min_clusters, max_clusters + 1), silhouette_scores, marker='o', linestyle='--', color='red')
-    plt.xlabel("Number of Clusters (k)")
-    plt.ylabel("Silhouette Score")
-    plt.title("Silhouette Score for Optimal k")
-    plt.grid(True)
-
-    # Show plot
-    plt.show()
-
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
@@ -163,6 +144,15 @@ def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_cl
     df = df.dropna()
     # df = df.fillna(0)
     retained_indices = df.index  # Save ECO_IDs of remaining rows
+
+    # correlation matrix
+    corr_matrix = df.corr()
+    corr_matrix.to_csv("outputs/csv/correlation_matrix.csv")    
+    # Plot correlation matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+    plt.title("Correlation Matrix of Selected Variables")
+    plt.show()
 
     # Standardize the data
     scaler = StandardScaler()
@@ -245,7 +235,6 @@ def run():
     print(reduced_data)
     
     plot_elbow_method(reduced_data)  # Use PCA-reduced data
-    find_best_clusters_silhouette(reduced_data)
     plot_pca_clusters(reduced_data, pca_loadings, variance_ratios, pc_x=1, pc_y=3)
 
 
