@@ -235,7 +235,7 @@ def run():
     print(reduced_data)
     
     plot_elbow_method(reduced_data)  # Use PCA-reduced data
-    plot_pca_clusters(reduced_data, pca_loadings, variance_ratios, pc_x=1, pc_y=3)
+    plot_pca_clusters(reduced_data, pca_loadings, variance_ratios, pc_x=1, pc_y=2)
 
 
 if __name__ == "__main__":
