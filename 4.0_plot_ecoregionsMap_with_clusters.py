@@ -21,10 +21,6 @@ def run():
 
     print(f"✅ Merged GeoPackage saved at: {output_gpkg}")
 
-
-
-
-
     # ✅ Step 1: Load the merged GeoPackage
     gpkg_path = "outputs/geopackages/ecoregions_with_clusters.gpkg"
     layer_name = "ecoregions_clusters"

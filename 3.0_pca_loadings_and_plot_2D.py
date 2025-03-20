@@ -121,6 +121,7 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
     scalePC_y = 1.0 / (max_y - min_y) if max_y - min_y != 0 else 1
     print(f"Scaling factors - X: {scalePC_x}, Y: {scalePC_y}")
 
+
     # ✅ Plot
     fig, ax = plt.subplots(figsize=(10, 10))
 
@@ -139,6 +140,8 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
         cmap='viridis', 
         alpha=0.7,
     )
+
+
 
     # ✅ Add legend if clusters exist
     if clusters is not None:
@@ -351,6 +354,12 @@ def run():
         )
     print("PCA-transformed data with Clusters saved as 'outputs/csv/pca_reduced_data_with_clusters.csv' ✅")
     print(reduced_data)
+    # cluster_labels = {
+    #     0: "Climate-Driven Regions",
+    #     1: "Highly Deforested Areas",
+    #     2: "Fire-Affected Forests",
+    #     # 3: "Moderately Disturbed Regions"
+    # }
     
     plot_elbow_method(reduced_data)  # Use PCA-reduced data
     plot_pca_clusters(
@@ -358,7 +367,7 @@ def run():
         pca_loadings, 
         variance_ratios, 
         pc_x=2, 
-        pc_y=3
+        pc_y=3,
         )
 
     optimal_k = determine_optimal_clusters(reduced_data, min_clusters=2, max_clusters=10)
