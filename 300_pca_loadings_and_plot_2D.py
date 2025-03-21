@@ -309,8 +309,10 @@ def determine_optimal_clusters(data, min_clusters=2, max_clusters=10):
 
 def run():
     # Example usage
-    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
-    layer_name = "zonal_statistics_v2"
+    # path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
+    # layer_name = "zonal_statistics_v2"
+    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"
+    layer_name = "ZonalStat_Ecoregions"
 
     # Load the GeoPackage file
     ecoregions_gdf = gpd.read_file(path_gpkg, layer=layer_name)
@@ -320,12 +322,19 @@ def run():
     ecoregions_df.set_index("ECO_ID", inplace=True)  # Ensure ECO_ID is the index
 
     # Select relevant columns
+    # selected_columns = [
+    #     "EWMnino",
+    #     "EWMnina",
+    #     "PrimaryForest_Loss50",
+    #     "primaryLoss_rate",
+    #     "PrimaryLoss_Fires50%"
+    # ]
     selected_columns = [
         "EWMnino",
         "EWMnina",
         "PrimaryForest_Loss50",
-        "primaryLoss_rate",
-        "PrimaryLoss_Fires50%"
+        "PrimaryLoss_Rate50",
+        "proportion_fire-induced_Primaryloss"
     ]
 
     # Perform PCA with K-Means clustering (e.g., 3 clusters)
@@ -337,7 +346,7 @@ def run():
         selected_columns, 
         variance_threshold = 0.9,
         n_components=3, 
-        n_clusters=3
+        n_clusters=4
     )
     reduced_data = pc_analysis[0]
     variance_ratios = pc_analysis[1]
@@ -353,7 +362,22 @@ def run():
         index=False
         )
     print("PCA-transformed data with Clusters saved as 'outputs/csv/pca_reduced_data_with_clusters.csv' ✅")
-    print(reduced_data)
+
+    # Save the PCA Loadings
+    # convert to dataframe
+    df_pca_loadings = pd.DataFrame(pca_loadings)
+
+    # add column names
+    df_pca_loadings.columns = selected_columns
+    # add row names
+    df_pca_loadings.index = ["PC1", "PC2", "PC3"]
+    print("pca_loadings:\n", df_pca_loadings.T)
+    df_pca_loadings.T.to_csv(
+        "outputs/csv/pca_loadings.csv", 
+        index=True
+    )
+    print("PCA Loadings saved as 'outputs/csv/pca_loadings.csv' ✅")
+
     # cluster_labels = {
     #     0: "Climate-Driven Regions",
     #     1: "Highly Deforested Areas",
@@ -366,8 +390,8 @@ def run():
         reduced_data, 
         pca_loadings, 
         variance_ratios, 
-        pc_x=2, 
-        pc_y=3,
+        pc_x=1, 
+        pc_y=2,
         )
 
     optimal_k = determine_optimal_clusters(reduced_data, min_clusters=2, max_clusters=10)
