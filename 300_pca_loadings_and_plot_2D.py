@@ -319,16 +319,14 @@ def run():
 
     # Convert to pandas DataFrame and set ECO_ID as index
     ecoregions_df = pd.DataFrame(ecoregions_gdf)
+    
+    # Drop ecoregions where PrimaryForest is 0
+    ecoregions_df = ecoregions_df.drop(
+        ecoregions_df[ecoregions_df["PrimaryForest50"] == 0].index
+        )
+
     ecoregions_df.set_index("ECO_ID", inplace=True)  # Ensure ECO_ID is the index
 
-    # Select relevant columns
-    # selected_columns = [
-    #     "EWMnino",
-    #     "EWMnina",
-    #     "PrimaryForest_Loss50",
-    #     "primaryLoss_rate",
-    #     "PrimaryLoss_Fires50%"
-    # ]
     selected_columns = [
         "EWMnino",
         "EWMnina",
@@ -338,9 +336,6 @@ def run():
     ]
 
     # Perform PCA with K-Means clustering (e.g., 3 clusters)
-    # reduced_data, variance_ratios, pca_loadings, retained_indices = perform_pca(
-    #     ecoregions_df, selected_columns, variance_threshold = 0.9, n_components=3, n_clusters=3
-    # )
     pc_analysis = perform_pca(
         ecoregions_df, 
         selected_columns, 
