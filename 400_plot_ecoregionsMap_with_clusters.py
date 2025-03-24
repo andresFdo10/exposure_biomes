@@ -5,8 +5,8 @@ import matplotlib.colors as mcolors
 def run():
 
     # ✅ Step 1: Load the original GeoPackage with ecoregions
-    gpkg_path = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"  # Update this if needed
-    layer_name = "zonal_statistics_v2"  # Update if your layer name is different
+    gpkg_path = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"  # Update this if needed
+    layer_name = "ZonalStat_Ecoregions"  # Update if your layer name is different
     ecoregions_gdf = gpd.read_file(gpkg_path, layer=layer_name)
 
     # ✅ Step 2: Load the PCA clusters CSV

@@ -386,7 +386,7 @@ def run():
         pca_loadings, 
         variance_ratios, 
         pc_x=1, 
-        pc_y=2,
+        pc_y=3,
         )
 
     optimal_k = determine_optimal_clusters(reduced_data, min_clusters=2, max_clusters=10)
