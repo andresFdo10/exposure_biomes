@@ -32,17 +32,22 @@ def run():
     combined_pc2_pc3 = pd.merge(top_pc2, top_pc3, on="ECO_ID", how="inner")  # Strong in PC2 & PC3
 
     # Identify ecoregions affected by all three principal components
-    combined_all = pd.merge(combined_pc1_pc2, top_pc3, on="ECO_ID", how="inner")
+    combined_all = pd.merge(
+        combined_pc1_pc2,
+        top_pc3,
+        on="ECO_ID",
+        how="inner"
+        )
 
     # Create a summary DataFrame listing affected ecoregions
     combined_effects_df = pd.DataFrame({
-        "Ecoregion ID": np.concatenate([
+        "ECO_ID": np.concatenate([
             combined_pc1_pc2["ECO_ID"].values, 
             combined_pc1_pc3["ECO_ID"].values, 
             combined_pc2_pc3["ECO_ID"].values,
             combined_all["ECO_ID"].values
         ]),
-        "Combined Effect": np.concatenate([
+        "Combined_Effect": np.concatenate([
             ["PC1 & PC2"] * len(combined_pc1_pc2),
             ["PC1 & PC3"] * len(combined_pc1_pc3),
             ["PC2 & PC3"] * len(combined_pc2_pc3),
@@ -51,10 +56,15 @@ def run():
     }).drop_duplicates()
 
     # Save the results
-    combined_effects_df.to_csv("outputs/ecoregions_combined_effects.csv", index=False)
+    combined_effects_df.to_csv(
+        "outputs/csv/ecoregions_combined_effects.csv",
+        index=False
+        )
 
     # Display output
-    print("Ecoregions with combined effects identified and saved as 'outputs/ecoregions_combined_effects.csv'")
+    print(
+        "Ecoregions with combined effects identified and saved as"\
+        " outputs/csv/ecoregions_combined_effects.csv'")
     print(combined_effects_df)
 
 if __name__ == "__main__":
