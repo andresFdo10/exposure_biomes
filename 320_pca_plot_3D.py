@@ -30,8 +30,9 @@ fig = px.scatter_3d(
     color="Cluster",
     opacity=0.5,
     title="Ecoregions Strongly Affected by All Three Effects",
-    hover_data={"ECO_ID": True}  # Show ECO_ID when hovering
-)
+    hover_data={"ECO_ID": True},  # Show ECO_ID when hovering
+    color_discrete_map="viridis"
+    )
 
 # # Highlight the filtered points in red
 # fig.add_trace(px.scatter_3d(

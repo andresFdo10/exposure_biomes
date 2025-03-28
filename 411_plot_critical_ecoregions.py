@@ -81,6 +81,7 @@ def plot_pca_clusters_with_map(
     combined_effects_path="outputs/csv/ecoregions_combined_effects.csv",
     gpkg_path="outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg",
     layer_name="ZonalStat_Ecoregions",
+    neotropic_layer=None,
     save_dir="outputs/figures"
 ):
 
@@ -118,7 +119,7 @@ def plot_pca_clusters_with_map(
     highlighted_scores = PC_scores[PC_scores["ECO_ID"].isin(ids)]
 
     # Start plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8),dpi=300)
 
     # --- Left: PCA Biplot ---
     clusters = PC_scores.get("Cluster", None)
@@ -127,29 +128,34 @@ def plot_pca_clusters_with_map(
         PC_scores[pc_y_col] * scale_y,
         c=clusters,
         cmap="viridis",
-        alpha=0.4,
-        label="All Ecoregions"
+        alpha=0.7,
+        label="All Ecoregions",
+        s=50
     )
 
     # Highlight critical ecoregions in red
     ax1.scatter(
         highlighted_scores[pc_x_col] * scale_x,
         highlighted_scores[pc_y_col] * scale_y,
-        color='red',
-        edgecolor='black',
+        # color='red',
+        facecolor='none',
+        edgecolor='red',
+        # linestyle='--',
+        linewidth=0.7,
         label="Combined Effect",
+        s=80,
         zorder=3
     )
 
     # Annotate only red points
     for _, row in highlighted_scores.iterrows():
         ax1.text(
-            row[pc_x_col] * scale_x,
-            row[pc_y_col] * scale_y,
+            (row[pc_x_col] * scale_x) * 0.98,
+            (row[pc_y_col] * scale_y) * 1.03,
             str(int(row["ECO_ID"])),
             fontsize=9,
             ha='right',
-            color='red'
+            color='black'
         )
 
     # Add vectors
@@ -184,16 +190,37 @@ def plot_pca_clusters_with_map(
     ax1.axvline(0, color="gray", linestyle="--")
     ax1.set_xlabel(f'PC{pc_x} ({explained_var_x:.2f}%)')
     ax1.set_ylabel(f'PC{pc_y} ({explained_var_y:.2f}%)')
-    ax1.set_title(f'PCA Biplot: PC{pc_x} vs PC{pc_y}')
+    # ax1.set_title(f'PCA Biplot: PC{pc_x} vs PC{pc_y}')
     ax1.legend()
 
     # --- Right: Map Plot ---
-    gdf.boundary.plot(ax=ax2, color="lightgray", linewidth=0.2, alpha=0.2)
+    # gdf.boundary.plot(
+    #     ax=ax2,
+    #     color="lightgray",
+    #     linewidth=0.2,
+    #     alpha=0.2
+    #     )
+    neotropic_layer.boundary.plot(
+        ax=ax2,
+        color="lightgray",
+        linewidth=0.4,
+        # alpha=0.7
+        )
+    # RGBA for black with 50% transparency
+    edge_color = (0, 0, 0, 0)  # R, G, B, Alpha
     if not highlighted_map.empty:
-        highlighted_map.plot(ax=ax2, color='red', edgecolor='black', linewidth=0.2)
-        ax2.set_title(f"Ecoregions with {label}")
-    else:
-        ax2.set_title(f"No ecoregions found for {label}")
+        highlighted_map.plot(
+            ax=ax2, 
+            color='red', 
+            # facecolor='none',
+            alpha=0.6,
+            edgecolor=edge_color, 
+            # linestyle='--',
+            linewidth=0.1
+            )
+        # ax2.set_title(f"Ecoregions with {label}")
+    # else:
+    #     ax2.set_title(f"No ecoregions found for {label}")
     ax2.axis("off")
 
     # Save and show
@@ -213,6 +240,10 @@ def run():
 
     # Load the GeoPackage file
     ecoregions_gdf = gpd.read_file(path_gpkg, layer=layer_name)
+    print(ecoregions_gdf.dtypes)
+    neotropic = ecoregions_gdf.dissolve("REALM")
+    # neotropic.plot()
+    # plt.show()
 
     # Convert to pandas DataFrame and set ECO_ID as index
     ecoregions_df = pd.DataFrame(ecoregions_gdf)
@@ -262,7 +293,8 @@ def run():
             pca_loadings,
             variance_ratios,
             pc_x=pc_x,
-            pc_y=pc_y
+            pc_y=pc_y,
+            neotropic_layer=neotropic,
         )
     
 
