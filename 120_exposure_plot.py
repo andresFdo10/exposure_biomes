@@ -145,7 +145,7 @@ def run():
 
     plt.tight_layout()  # Adjust layout to fit the colorbars
     fig.subplots_adjust(hspace=0.08)
-    # plt.savefig("./outputs/Exposure_Entropy_El_Nino_La_Nina.png", dpi=600)
+    plt.savefig("./outputs/figures/Exposure_Entropy_El_Nino_La_Nina.png", dpi=300)
     plt.show()
 
 

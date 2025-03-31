@@ -4,56 +4,68 @@ import matplotlib.pyplot as plt
 import fiona
 import os
 import mapclassify
-
-import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import geopandas as gpd
+import matplotlib as mpl
 
-def plot_custom_2row_map(path_gpkg, layer_name, border_layer):
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+def plot_ewm_maps(path_gpkg, layer_name, border_layer):
+    """Plots EWMnino and EWMnina with a shared color scale and individual colorbars."""
+    # Load the data
     gdf = gpd.read_file(path_gpkg, layer=layer_name)
     borders = gpd.read_file(path_gpkg, layer=border_layer)
-
+    
     columns = [
-        ("EWMnino", "EWM Nino Median", "OrRd", (0, 1)),
-        ("EWMnina", "EWM Nina Median", "Blues", (0, 1)),
-        ("PrimaryLoss_Rate50", "Tree Cover Loss Velocity (%/year)", "Greys", None),
-        ("proportion_fire-induced_Primaryloss", "Tree Cover Loss by Fires (%)", "Greys", None),
-        ("PrimaryForest_Loss50", "Cumulative Primary Forest Loss (ha)", "Greys", None)
+        ("EWMnino", "EWM Niño Median", "OrRd"),
+        ("EWMnina", "EWM Niña Median", "Blues")
     ]
-    fig = plt.figure(figsize=(15, 10))
-    spec = gridspec.GridSpec(nrows=2, ncols=3, height_ratios=[1, 1])
 
-    # First row: center by spanning the middle two columns
-    ax0 = fig.add_subplot(spec[0, 1])
-    ax1 = fig.add_subplot(spec[0, 2])
+    # Calculate global min/max for shared color scale
+    values_combined = pd.concat([gdf[col] for col, _, _ in columns if col in gdf.columns])
+    global_min = values_combined.min()
+    global_max = values_combined.max()
+    norm = mpl.colors.Normalize(vmin=global_min, vmax=global_max)
 
-    # Second row: fixed 3 columns
-    ax2 = fig.add_subplot(spec[1, 0])
-    ax3 = fig.add_subplot(spec[1, 1])
-    ax4 = fig.add_subplot(spec[1, 2])
-
-    axes = [ax0, ax1, ax2, ax3, ax4]
-
-    for i, (col, title, cmap, bounds) in enumerate(columns):
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    labels = ['(a)', '(b)']
+    
+    for i, (col, title, cmap_name) in enumerate(columns):
         ax = axes[i]
         if col in gdf.columns:
-            if bounds:
-                bins = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-                gdf.plot(column=col, cmap=cmap, ax=ax, legend=True,
-                         scheme='user_defined', classification_kwds={'bins': bins})
-            else:
-                gdf.plot(column=col, cmap=cmap, ax=ax, legend=True)
+            cmap = plt.get_cmap(cmap_name)
 
+            # Plot data with shared normalization
+            gdf.plot(column=col, cmap=cmap, norm=norm, ax=ax)
+
+            # Overlay borders
             borders.plot(ax=ax, edgecolor='black', linewidth=0.1, facecolor='none')
-            ax.set_title(title)
-            ax.axis("off")
+
+            # Add colorbar
+            sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm._A = []
+            cbar = fig.colorbar(sm, ax=ax, shrink=0.6, pad=0.02)
+            cbar.ax.tick_params(labelsize=10)
         else:
             ax.set_title(f"{title} (Data Missing)")
-            ax.axis("off")
 
+        ax.set_title(title)
+        ax.axis("off")
+        # Add (a), (b) labels in corner
+        ax.text(0.01, 0.95, labels[i], transform=ax.transAxes,
+                fontsize=17, fontweight='bold', va='top', ha='left',
+                bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
+    
     plt.tight_layout()
-    plt.savefig("outputs/figures/custom_2row_map.png", dpi=300)
+    plt.savefig("outputs/figures/ewm_maps.png", dpi=300)
     plt.show()
+
+
     
 def plot_2x3_geopackage_data(path_gpkg, layer_name, border_layer):
     gdf = gpd.read_file(path_gpkg, layer=layer_name)
@@ -67,32 +79,37 @@ def plot_2x3_geopackage_data(path_gpkg, layer_name, border_layer):
         ("PrimaryForest_Loss50", "Cumulative Primary Forest Loss (ha)", "YlOrBr", None)
     ]
 
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    fig, axes = plt.subplots(1, 3, figsize=(16, 6))
     axes = axes.flatten()
-
-    for i, (col, title, cmap, bounds) in enumerate(columns):
+    
+    for i, (col, title) in enumerate(columns):
+        ax = axes[i]
         if col in gdf.columns:
-            if bounds:
-                bins = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-                gdf.plot(column=col, cmap=cmap, ax=axes[i], legend=True,
-                         scheme='user_defined', classification_kwds={'bins': bins})
-            else:
-                gdf.plot(column=col, cmap=cmap, ax=axes[i], legend=True)
+            cmap = plt.get_cmap("Greys")
+            values = gdf[col]
 
-            borders.plot(ax=axes[i], edgecolor='black', linewidth=0.1, facecolor='none')
-            axes[i].set_title(title)
-            axes[i].axis("off")
+            # Normalize the color range
+            norm = mpl.colors.Normalize(vmin=values.min(), vmax=values.max())
+
+            # Plot data
+            gdf.plot(column=col, cmap=cmap, norm=norm, ax=ax)
+
+            # Add borders
+            borders.plot(ax=ax, edgecolor='black', linewidth=0.1, facecolor='none')
+
+            # Add colorbar with smaller size
+            sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm._A = []  # Required for ScalarMappable to work without data
+            cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.02)  # <--- Control size with shrink
+            cbar.ax.tick_params(labelsize=8)  # Optional: smaller tick font
         else:
-            axes[i].set_title(f"{title} (Data Missing)")
-            axes[i].axis("off")
+            ax.set_title(f"{title} (Data Missing)")
 
-    # Remove any unused axes
-    for j in range(len(columns), len(axes)):
-        fig.delaxes(axes[j])
-
+        ax.set_title(title)
+        ax.axis("off")
+    
     plt.tight_layout()
     plt.show()
-
 
 def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
     """Plots a 2x2 grid with specified columns from a GeoPackage."""
@@ -115,22 +132,45 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
         ("PrimaryForest_Loss50", "Cumulative Primary Forest Loss (ha)")
     ]
     
-    fig, axes = plt.subplots(1, 3, figsize=(16, 8))
+    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
     axes = axes.flatten()
     
     for i, (col, title) in enumerate(columns):
+        ax = axes[i]
         if col in gdf.columns:
-            gdf.plot(column=col, cmap="Greys", ax=axes[i], legend=True)
-            
-            borders.plot(ax=axes[i], edgecolor='black', linewidth=0.1, facecolor='none')
-            axes[i].set_title(title)
-            axes[i].axis("off")
+            cmap = plt.get_cmap("Greys")  # Moved inside the if block
+            values = gdf[col]
+
+            # Normalize the color range
+            norm = mpl.colors.Normalize(vmin=values.min(), vmax=values.max())
+
+            # Plot data
+            gdf.plot(column=col, cmap=cmap, norm=norm, ax=ax)
+
+            # Add borders
+            borders.plot(ax=ax, edgecolor='black', linewidth=0.1, facecolor='none')
+
+            # Add colorbar with smaller size
+            sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm._A = []
+            cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.02)
+            cbar.ax.tick_params(labelsize=8)
+            ax.spines['bottom'].set_visible(True)
+            ax.spines['left'].set_visible(True)
         else:
-            # Overlay the borders layer
-            axes[i].set_title(f"{title} (Data Missing)")
-            axes[i].axis("off")
+            ax.set_title(f"{title} (Data Missing)")
+
+        ax.set_title(title)
+        ax.axis("off")
+        labels = ['(c)', '(d)', '(e)']
+        ax.text(0.01, 0.95, labels[i], transform=ax.transAxes,
+                fontsize=12, fontweight='bold', va='top', ha='left',
+                bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
+
     
     plt.tight_layout()
+    plt.savefig("outputs/figures/lossforest_drivers.png", dpi=300, bbox_inches="tight")
+
     plt.show()
 
 
@@ -152,6 +192,7 @@ def run():
     print(gdf.dtypes)
     # plot_custom_2row_map(path_gpkg, layer_name, borders_layer)
     plot_2x2_geopackage_data(path_gpkg, layer_name, borders_layer)
+    plot_ewm_maps(path_gpkg, layer_name, borders_layer)
 
 
 if __name__ == "__main__":

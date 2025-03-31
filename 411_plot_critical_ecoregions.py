@@ -9,6 +9,29 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import seaborn as sns
 import os
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import matplotlib.patches as mpatches
+
+def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
+    # Add coastlines
+    ax.coastlines()
+
+    # Add country borders with a dotted line style
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
+    # Set extent for dimension standardization
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
+
+    # Add land features with an edge color
+    land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
+    ax.add_feature(land, edgecolor="black", linewidth=0.2)
+
+    # Add gridlines with specified transparency and line width
+    ax.gridlines(alpha=0.6, linewidth=0.2, draw_labels=False)
+    # ax.gridlines(alpha=0.6, linewidth=0.2, draw_labels=True,
+    #         #  xlabels_top=False, xlabels_bottom=True,
+    #         #  ylabels_left=True, ylabels_right=False,
+    #          x_inline=False, y_inline=False)
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
@@ -119,7 +142,7 @@ def plot_pca_clusters_with_map(
     highlighted_scores = PC_scores[PC_scores["ECO_ID"].isin(ids)]
 
     # Start plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8),dpi=300)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={"projection":ccrs.PlateCarree()})
 
     # --- Left: PCA Biplot ---
     clusters = PC_scores.get("Cluster", None)
@@ -129,9 +152,44 @@ def plot_pca_clusters_with_map(
         c=clusters,
         cmap="viridis",
         alpha=0.7,
-        label="All Ecoregions",
         s=50
     )
+
+    # Define your cluster labels
+    cluster_labels = {
+        0: "Fire-Affected Forests",
+        1: "ENSO-Exposed Regions",
+        2: "Stable/Mixed Impact",
+        3: "High Deforestation"
+        # Add more if needed
+    }
+
+    PC_scores["Cluster"] = PC_scores["Cluster"].astype(int)
+    # Add cluster legend manually
+    if "Cluster" in PC_scores.columns:
+        cluster_ids = sorted(PC_scores["Cluster"].dropna().unique())
+        cmap = plt.get_cmap("viridis")
+        norm = plt.Normalize(vmin=min(cluster_ids), vmax=max(cluster_ids))
+
+        handles = []
+        for cid in cluster_ids:
+            color = cmap(norm(cid))
+            label = cluster_labels.get(cid, f"Cluster {cid}")
+            patch = mpatches.Patch(color=color, label=label)
+            handles.append(patch)
+
+
+        ax1.legend(handles=handles, title="Clusters", loc="lower right", fontsize=10, title_fontsize=11)
+    # clusters = PC_scores.get("Cluster", None)
+    # scatter = ax1.scatter(
+    #     PC_scores[pc_x_col] * scale_x,
+    #     PC_scores[pc_y_col] * scale_y,
+    #     c=clusters,
+    #     cmap="viridis",
+    #     alpha=0.7,
+    #     # label="All Ecoregions",
+    #     s=50
+    # )
 
     # Highlight critical ecoregions in red
     ax1.scatter(
@@ -141,22 +199,22 @@ def plot_pca_clusters_with_map(
         facecolor='none',
         edgecolor='red',
         # linestyle='--',
-        linewidth=0.7,
-        label="Combined Effect",
-        s=80,
-        zorder=3
+        linewidth=1.5,
+        # label="Combined Effect",
+        s=100,
+        # zorder=3
     )
 
     # Annotate only red points
-    for _, row in highlighted_scores.iterrows():
-        ax1.text(
-            (row[pc_x_col] * scale_x) * 0.98,
-            (row[pc_y_col] * scale_y) * 1.03,
-            str(int(row["ECO_ID"])),
-            fontsize=9,
-            ha='right',
-            color='black'
-        )
+    # for _, row in highlighted_scores.iterrows():
+    #     ax1.text(
+    #         (row[pc_x_col] * scale_x) * 1.03,
+    #         (row[pc_y_col] * scale_y) * 1.10,
+    #         str(int(row["ECO_ID"])),
+    #         fontsize=12,
+    #         ha='right',
+    #         color='black'
+    #     )
 
     # Add vectors
     features = [
@@ -191,7 +249,8 @@ def plot_pca_clusters_with_map(
     ax1.set_xlabel(f'PC{pc_x} ({explained_var_x:.2f}%)')
     ax1.set_ylabel(f'PC{pc_y} ({explained_var_y:.2f}%)')
     # ax1.set_title(f'PCA Biplot: PC{pc_x} vs PC{pc_y}')
-    ax1.legend()
+    # ax1.legend()
+    ax1.legend(handles=handles, title="Clusters", loc="lower right", fontsize=10, title_fontsize=11)
 
     # --- Right: Map Plot ---
     # gdf.boundary.plot(
@@ -200,12 +259,13 @@ def plot_pca_clusters_with_map(
     #     linewidth=0.2,
     #     alpha=0.2
     #     )
-    neotropic_layer.boundary.plot(
-        ax=ax2,
-        color="lightgray",
-        linewidth=0.4,
-        # alpha=0.7
-        )
+    # neotropic_layer.boundary.plot(
+    #     ax=ax2,
+    #     color="lightgray",
+    #     linewidth=0.4,
+    #     # alpha=0.7
+    #     )
+    extent  = (-105, -33.9, -31.5, 23.8)
     # RGBA for black with 50% transparency
     edge_color = (0, 0, 0, 0)  # R, G, B, Alpha
     if not highlighted_map.empty:
@@ -222,6 +282,7 @@ def plot_pca_clusters_with_map(
     # else:
     #     ax2.set_title(f"No ecoregions found for {label}")
     ax2.axis("off")
+    add_features(ax2, extent=extent)
 
     # Save and show
     filename = f"{save_dir}/PCA_PC{pc_x}_vs_PC{pc_y}_with_map.png"
