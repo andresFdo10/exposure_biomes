@@ -267,7 +267,7 @@ def plot_pca_clusters_with_map(
     #     )
     extent  = (-105, -33.9, -31.5, 23.8)
     # RGBA for black with 50% transparency
-    edge_color = (0, 0, 0, 0)  # R, G, B, Alpha
+    edge_color = (1, 1, 1, 0.3)  # R, G, B, Alpha
     if not highlighted_map.empty:
         highlighted_map.plot(
             ax=ax2, 
@@ -276,7 +276,7 @@ def plot_pca_clusters_with_map(
             alpha=0.6,
             edgecolor=edge_color, 
             # linestyle='--',
-            linewidth=0.1
+            linewidth=0.2
             )
         # ax2.set_title(f"Ecoregions with {label}")
     # else:
