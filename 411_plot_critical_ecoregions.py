@@ -12,26 +12,9 @@ import os
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import matplotlib.patches as mpatches
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+import matplotlib.ticker as mticker
 
-def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
-    # Add coastlines
-    ax.coastlines()
-
-    # Add country borders with a dotted line style
-    ax.add_feature(cfeature.BORDERS, linestyle=":")
-    # Set extent for dimension standardization
-    ax.set_extent(extent, crs=ccrs.PlateCarree())
-
-    # Add land features with an edge color
-    land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
-    ax.add_feature(land, edgecolor="black", linewidth=0.2)
-
-    # Add gridlines with specified transparency and line width
-    ax.gridlines(alpha=0.6, linewidth=0.2, draw_labels=False)
-    # ax.gridlines(alpha=0.6, linewidth=0.2, draw_labels=True,
-    #         #  xlabels_top=False, xlabels_bottom=True,
-    #         #  ylabels_left=True, ylabels_right=False,
-    #          x_inline=False, y_inline=False)
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
@@ -95,6 +78,52 @@ def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_cl
     return PC_scores, explained_variance_ratio, pca_loadings, retained_indices
 
 
+def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
+    # Add coastlines
+    ax.coastlines()
+
+    # Add country borders with a dotted line style
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
+    # Set extent for dimension standardization
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
+
+    # Add land features with an edge color
+    land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
+    ax.add_feature(land, edgecolor="black", linewidth=0.2)
+
+    # Add gridlines with specified transparency and line width
+    # ✅ Correct way to control gridline labels
+    gl = ax.gridlines(alpha=0.6, linewidth=0.2, draw_labels=True)
+    gl.top_labels = False
+    gl.bottom_labels = True
+    gl.left_labels = False
+    gl.right_labels = True
+    # ✅ Set decimal degree format
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
+    gl.xlocator = mticker.FixedLocator(np.arange(-105, -30, 15))
+    # gl.ylocator = mticker.FixedLocator(np.arange(-30, 30, 10))
+    # gl.xformatter = mticker.FormatStrFormatter("%.1f")
+    # gl.yformatter = mticker.FormatStrFormatter("%.1f")
+    gl.xlabel_style = {'size': 9, 'color': 'black'}
+    gl.ylabel_style = {'size': 9, 'color': 'black', 'rotation': 90}
+    # Rotate right-side labels and set smaller font
+    # ✅ Trigger rendering to populate label artists
+    plt.draw()
+
+
+def add_literals(axes, literal, x, y):
+    axes.text(
+        x, 
+        y, 
+        literal, 
+        transform=axes.transAxes,
+        fontsize=12, 
+        fontweight='bold', 
+        va='top', 
+        ha='left',
+        bbox=dict(facecolor='white', edgecolor='none', alpha=0.7)
+        )
 def plot_pca_clusters_with_map(
     PC_scores,
     pca_loadings,
@@ -142,7 +171,10 @@ def plot_pca_clusters_with_map(
     highlighted_scores = PC_scores[PC_scores["ECO_ID"].isin(ids)]
 
     # Start plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={"projection":ccrs.PlateCarree()})
+    fig = plt.figure(figsize=(12, 6))
+    ax1 = fig.add_subplot(1, 2, 1)  # Regular Matplotlib axes for PCA
+    ax2 = fig.add_subplot(1, 2, 2, projection=ccrs.PlateCarree())  # Cartopy for map
+
 
     # --- Left: PCA Biplot ---
     clusters = PC_scores.get("Cluster", None)
@@ -180,16 +212,6 @@ def plot_pca_clusters_with_map(
 
 
         ax1.legend(handles=handles, title="Clusters", loc="lower right", fontsize=10, title_fontsize=11)
-    # clusters = PC_scores.get("Cluster", None)
-    # scatter = ax1.scatter(
-    #     PC_scores[pc_x_col] * scale_x,
-    #     PC_scores[pc_y_col] * scale_y,
-    #     c=clusters,
-    #     cmap="viridis",
-    #     alpha=0.7,
-    #     # label="All Ecoregions",
-    #     s=50
-    # )
 
     # Highlight critical ecoregions in red
     ax1.scatter(
@@ -226,7 +248,8 @@ def plot_pca_clusters_with_map(
     ]
     for i, feature in enumerate(features):
         ax1.arrow(
-            0, 0,
+            0, 
+            0,
             pca_loadings[pc_x_idx, i],
             pca_loadings[pc_y_idx, i],
             color='black',
@@ -248,9 +271,8 @@ def plot_pca_clusters_with_map(
     ax1.axvline(0, color="gray", linestyle="--")
     ax1.set_xlabel(f'PC{pc_x} ({explained_var_x:.2f}%)')
     ax1.set_ylabel(f'PC{pc_y} ({explained_var_y:.2f}%)')
-    # ax1.set_title(f'PCA Biplot: PC{pc_x} vs PC{pc_y}')
-    # ax1.legend()
-    ax1.legend(handles=handles, title="Clusters", loc="lower right", fontsize=10, title_fontsize=11)
+    literal = "(a)"
+    add_literals(ax1, literal, 0.90, 0.94)
 
     # --- Right: Map Plot ---
     # gdf.boundary.plot(
@@ -281,6 +303,8 @@ def plot_pca_clusters_with_map(
         # ax2.set_title(f"Ecoregions with {label}")
     # else:
     #     ax2.set_title(f"No ecoregions found for {label}")
+    literal = "(b)"
+    add_literals(ax2, literal, 0.90, 1.07)
     ax2.axis("off")
     add_features(ax2, extent=extent)
 
