@@ -49,6 +49,8 @@ def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_cl
     # Explained variance ratio
     explained_variance_ratio = pca.explained_variance_ratio_
     print("Explained variance ratio:\n", explained_variance_ratio)
+    eigenvalues = pca.explained_variance_
+    print("Explained variance ratio:\n", eigenvalues)
     # Compute explained variance percentages
     explained_var_pc1 = explained_variance_ratio[0] * 100  # Percentage for PC1
     explained_var_pc2 = explained_variance_ratio[1] * 100  # Percentage for PC2
@@ -84,7 +86,7 @@ def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_cl
     PC_scores["Cluster"] = clusters
 
 
-    return PC_scores, explained_variance_ratio, pca_loadings, retained_indices
+    return PC_scores, explained_variance_ratio, pca_loadings, retained_indices, pca, eigenvalues
 
 
 def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=2):
@@ -249,7 +251,6 @@ def plot_elbow_method(data, max_clusters=10):
     # Show plot
     plt.show()
 
-
 def determine_optimal_clusters(data, min_clusters=2, max_clusters=10):
     """
     Determines the optimal number of clusters using the Elbow Method and the Silhouette Score.
@@ -305,6 +306,53 @@ def determine_optimal_clusters(data, min_clusters=2, max_clusters=10):
 
     return optimal_k
 
+def plot_explained_variance(pca_model):
+    """
+    Plots cumulative explained variance to help select the number of components.
+    """
+    cumulative_variance = np.cumsum(pca_model.explained_variance_ratio_) * 100
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, len(cumulative_variance) + 1), cumulative_variance, marker='o')
+    plt.axhline(y=70, color='r', linestyle='--', label='70% Threshold')
+    plt.xlabel('Number of Principal Components')
+    plt.ylabel('Cumulative Explained Variance (%)')
+    plt.title('Explained Variance by Number of Components')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("outputs/figures/pca_explained_variance.png", dpi=300)
+    plt.show()
+
+def plot_scree_plot(pca_model):
+    """
+    Plots the scree plot to help select the number of components.
+    """
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, len(pca_model)+1), pca_model, marker='o')
+    plt.xlabel('Principal Component')
+    plt.ylabel('Proportion of Explained Variance')
+    plt.title('Scree Plot')
+    plt.grid(True)
+    plt.tight_layout()
+    # plt.savefig("outputs/figures/pca_scree_plot.png", dpi=300)
+    plt.show()
+
+def plot_scree_plot_kr(pca_model):
+    """
+    Plots the scree plot to help select the number of components.
+    """
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, len(pca_model)+1), pca_model, marker='o')
+    plt.xlabel('Principal Component')
+    plt.ylabel('Proportion of Explained Variance')
+    plt.title('Scree Plot')
+    plt.axhline(y=1, color='r', 
+            linestyle='--')
+    plt.grid(True)
+    plt.tight_layout()
+    # plt.savefig("outputs/figures/pca_scree_plot.png", dpi=300)
+    plt.show()
 
 
 def run():
@@ -340,13 +388,17 @@ def run():
         ecoregions_df, 
         selected_columns, 
         variance_threshold = 0.9,
-        n_components=3, 
+        n_components=5, 
         n_clusters=4
     )
     reduced_data = pc_analysis[0]
     variance_ratios = pc_analysis[1]
     pca_loadings = pc_analysis[2]
     retained_indices = pc_analysis[3]
+    pca_model = pc_analysis[4]
+    eigenvalues = pc_analysis[5]
+
+    print(f"Ratios: \n{variance_ratios}")
 
     # Add back ECO_IDs from retained indices
     reduced_data.insert(0, "ECO_ID", retained_indices)  # Ensures ECO_ID is the first column
@@ -365,7 +417,7 @@ def run():
     # add column names
     df_pca_loadings.columns = selected_columns
     # add row names
-    df_pca_loadings.index = ["PC1", "PC2", "PC3"]
+    df_pca_loadings.index = ["PC1", "PC2", "PC3", "PC4", "PC5"]
     print("pca_loadings:\n", df_pca_loadings.T)
     df_pca_loadings.T.to_csv(
         "outputs/csv/pca_loadings.csv", 
@@ -390,6 +442,9 @@ def run():
         )
 
     optimal_k = determine_optimal_clusters(reduced_data, min_clusters=2, max_clusters=10)
+    plot_explained_variance(pca_model)
+    plot_scree_plot(variance_ratios)
+    plot_scree_plot_kr(eigenvalues)
 
 
 if __name__ == "__main__":

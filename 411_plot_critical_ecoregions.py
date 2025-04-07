@@ -3,18 +3,16 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import matplotlib.patches as mpatches
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import seaborn as sns
-import os
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import matplotlib.patches as mpatches
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-import matplotlib.ticker as mticker
-
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
