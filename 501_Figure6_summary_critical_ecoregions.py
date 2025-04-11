@@ -135,6 +135,7 @@ def run():
     # Save and display
     # merged_df.to_csv("outputs/csv/ecoregions_combined_effects_sorted.csv", index=False)
     # print(pivot_df)
+    critical_gdf.to_file("outputs/geopackages/critical_ecoregions_all_combinations.gpkg", driver="GPKG")
 
    # Save the pivot table as a new CSV file
 

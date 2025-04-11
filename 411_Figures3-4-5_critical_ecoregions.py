@@ -244,7 +244,36 @@ def plot_pca_clusters_with_map(
         'Forest Loss Rate',
         'Fire-Induced Loss %'
     ]
+    
+    # The following parameters are for the vectors labels position
+    # Define alignment per feature
+    label_alignment = {
+        'El Niño EWI': 'left',
+        'La Niña EWI': 'left',
+        'Forest Loss': 'left',
+        'Forest Loss Rate': 'left',
+        'Fire-Induced Loss %': 'left'
+    }
+    # Vertical alignment per feature
+    vertical_alignment = {
+        'El Niño EWI': 'top',
+        'La Niña EWI': 'bottom',
+        'Forest Loss': 'bottom',
+        'Forest Loss Rate': 'bottom',
+        'Fire-Induced Loss %': 'top'
+    }
+    label_rotation = {
+        'El Niño EWI': True,
+        'La Niña EWI': True,
+        'Forest Loss Rate': False,
+        'Forest Loss': False,
+        'Fire-Induced Loss %': False
+    }
+
+    # Add vectors and labels
     for i, feature in enumerate(features):
+        x = pca_loadings[pc_x_idx, i]
+        y = pca_loadings[pc_y_idx, i]
         ax1.arrow(
             0, 
             0,
@@ -255,11 +284,28 @@ def plot_pca_clusters_with_map(
             head_length=0.02,
             alpha=0.8
         )
+
+        ha = label_alignment.get(feature, 'left')
+        va = vertical_alignment.get(feature, 'center')
+
+        # Apply rotation only to selected labels
+        if label_rotation.get(feature, False):
+            # angle = np.degrees(np.arctan2(y, x))
+            rotation = 15
+            rotation_mode = 'anchor'
+        else:
+            rotation = 0
+            rotation_mode = None
+
         ax1.text(
             pca_loadings[pc_x_idx, i] * 1.03,
-            pca_loadings[pc_y_idx, i] * 1.03,
+            pca_loadings[pc_y_idx, i] * 1.05,
             feature,
-            fontsize=12
+            fontsize=12,
+            ha=ha,
+            va='center',
+            rotation=rotation,
+            rotation_mode='anchor'
         )
 
     ax1.set_xlim(-0.95, 0.95)

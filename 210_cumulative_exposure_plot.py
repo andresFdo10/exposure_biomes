@@ -22,8 +22,8 @@ def plot_ewm_maps(path_gpkg, layer_name, border_layer):
     borders = gpd.read_file(path_gpkg, layer=border_layer)
     
     columns = [
-        ("EWMnino", "EWM Niño Median", "OrRd"),
-        ("EWMnina", "EWM Niña Median", "Blues")
+        ("EWMnino", "El Niño EWI", "OrRd"),
+        ("EWMnina", "La Niña EWI", "Blues")
     ]
 
     # Calculate global min/max for shared color scale
@@ -52,12 +52,12 @@ def plot_ewm_maps(path_gpkg, layer_name, border_layer):
             cbar = fig.colorbar(sm, ax=ax, shrink=0.6, pad=0.02)
             cbar.ax.tick_params(labelsize=10)
         else:
-            ax.set_title(f"{title} (Data Missing)")
+            ax.set_title(f"{title} (Data Missing)", fontsize=16)
 
-        ax.set_title(title)
+        ax.set_title(title, fontsize=16)
         ax.axis("off")
         # Add (a), (b) labels in corner
-        ax.text(0.01, 0.95, labels[i], transform=ax.transAxes,
+        ax.text(0.90, 0.95, labels[i], transform=ax.transAxes,
                 fontsize=17, fontweight='bold', va='top', ha='left',
                 bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
     
@@ -76,7 +76,7 @@ def plot_2x3_geopackage_data(path_gpkg, layer_name, border_layer):
         ("EWMnina", "EWM Nina Median", "Blues", (0, 1)),
         ("PrimaryLoss_Rate50", "Tree Cover Loss Velocity (%/year)", "Greys", None),
         ("proportion_fire-induced_Primaryloss", "Tree Cover Loss by Fires (%)", "Greys", None),
-        ("PrimaryForest_Loss50", "Cumulative Primary Forest Loss (ha)", "YlOrBr", None)
+        ("PrimaryForest_Loss50", "Cumulative primary forest Loss (ha)", "YlOrBr", None)
     ]
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 6))
@@ -127,9 +127,9 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
     columns = [
         # ("EWMnino", "EWM Nino Median", "OrRd", (0, 1)),
         # ("EWMnina", "EWM Nina Median", "Blues", (0, 1)),
-        ("PrimaryLoss_Rate50", "Tree Cover Loss Velocity (%/year)"),
-        ("proportion_fire-induced_Primaryloss", "Tree Cover Loss by Fires (%)"),
-        ("PrimaryForest_Loss50", "Cumulative Primary Forest Loss (ha)")
+        ("PrimaryLoss_Rate50", "Annual primary forest loss rate (%/year)"),
+        ("proportion_fire-induced_Primaryloss", "Fire-induced primary forest loss (%)"),
+        ("PrimaryForest_Loss50", "Cumulative primary forest loss (ha)")
     ]
     
     fig, axes = plt.subplots(1, 3, figsize=(12, 6))
@@ -163,7 +163,7 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
         ax.set_title(title)
         ax.axis("off")
         labels = ['(c)', '(d)', '(e)']
-        ax.text(0.01, 0.95, labels[i], transform=ax.transAxes,
+        ax.text(0.90, 0.95, labels[i], transform=ax.transAxes,
                 fontsize=12, fontweight='bold', va='top', ha='left',
                 bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
 
