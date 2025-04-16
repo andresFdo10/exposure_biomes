@@ -7,14 +7,19 @@ import mapclassify
 import matplotlib.gridspec as gridspec
 import matplotlib as mpl
 
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
+    # Add coastlines
+    ax.coastlines()
 
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+    # Add country borders with a dotted line style
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
+    # Set extent for dimension standardization
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
 
+    # Add land features with an edge color
+    land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
+    ax.add_feature(land, edgecolor="black", linewidth=0.2)
+    
 def plot_ewm_maps(path_gpkg, layer_name, border_layer):
     """Plots EWMnino and EWMnina with a shared color scale and individual colorbars."""
     # Load the data
