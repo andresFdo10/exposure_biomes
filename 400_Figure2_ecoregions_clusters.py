@@ -80,12 +80,7 @@ def run():
     if "Cluster" not in ecoregions_gdf.columns:
         raise ValueError("⚠️ The 'Cluster' column is missing in the GeoPackage!")
 
-    print(ecoregions_gdf.groupby("Cluster").size())
-
-    # Replace NaNs with -1 (used for transparency)
-    ecoregions_gdf["Cluster"].fillna(-1, inplace=True)
-
-        # ✅ Step 1: Get unique valid clusters (excluding -1)
+    # ✅ Step 1: Get unique valid clusters (excluding -1)
     valid_clusters = sorted([c for c in ecoregions_gdf["Cluster"].unique() if c != -1])
     num_clusters = len(valid_clusters)
 
@@ -99,6 +94,33 @@ def run():
 
     # ✅ Step 6: Map Colors to Data
     ecoregions_gdf["color"] = ecoregions_gdf["Cluster"].map(color_dict)
+    
+    # Remove Ecoregions without Primary Forest
+    ecoregions_gdf = ecoregions_gdf.dropna(subset=['Cluster'])
+
+
+    # *************************************************************************
+    # Count occurrences of each category
+    counts = ecoregions_gdf['Cluster'].value_counts().sort_index()
+    labels = counts.index
+    dynamic_labels = [label for label in labels]
+
+    cmap = cm.viridis
+    colors = []
+
+    for label in labels:
+        idx = dynamic_labels.index(label)
+        colors.append(cmap(idx / (len(dynamic_labels) - 1)))
+
+    # Compute total area per cluster
+    # Compute total area per cluster and normalize to get proportions
+    area_per_cluster = ecoregions_gdf.groupby("Cluster")["area km2"].sum()
+    area_per_cluster = area_per_cluster[area_per_cluster.index.isin(labels)]  # ensure consistent ordering
+    area_proportions = area_per_cluster / area_per_cluster.sum()
+    # print(f"Area proportion\n{area_proportions}")
+
+
+    # *************************************************************************
 
 
     # ***** ✅ Step 7: Create a Figure ***** 
@@ -128,7 +150,97 @@ def run():
     ecoregions_gdf["Cluster"] = ecoregions_gdf["Cluster"].astype(int)
     ecoregions_gdf["Cluster"] = ecoregions_gdf["Cluster"].replace(-1, np.nan)
     print(ecoregions_gdf["Cluster"].unique())
+    # *************************************************************************
 
+    inset_ax1 = inset_axes(
+        ax, width="20%", height="20%",
+        loc='lower left',
+        bbox_to_anchor=(0.05, 0.0, 1, 1),  # lower position than area chart
+        bbox_transform=ax.transAxes,
+        borderpad=2
+    )
+
+    # Normalize counts to proportions
+    count_proportions = counts / counts.sum()
+    bar_labels = [str(label) for label in count_proportions.index]
+    bar_colors = [
+        cmap(dynamic_labels.index(label) / (len(dynamic_labels) - 1))
+        for label in count_proportions.index
+    ]
+
+    # Plot bar chart
+    bars1 = inset_ax1.bar(bar_labels, count_proportions, color=bar_colors, edgecolor='black')
+
+    # Add percentage labels on top of each bar
+    for bar in bars1:
+        height = bar.get_height()
+        inset_ax1.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.005,
+            f'{height * 100:.1f}%',
+            ha='center', va='bottom', fontsize=7, color='black'
+        )
+
+    # Style: transparent background and subtle gray frame
+    inset_ax1.set_facecolor((1, 1, 1, 0.0))  # transparent background
+    for spine in inset_ax1.spines.values():
+        spine.set_edgecolor('gray')
+        spine.set_linewidth(0.5)
+        spine.set_alpha(0.3)
+
+    # Remove ticks for clean look
+    inset_ax1.set_xticks([])
+    inset_ax1.set_yticks([])
+    inset_ax1.spines['top'].set_visible(False)
+    inset_ax1.spines['right'].set_visible(False)
+    inset_ax1.spines['left'].set_visible(False)
+    inset_ax1.spines['bottom'].set_visible(False)
+    inset_ax1.set_title("Ecoregion Count (% of 150)", fontsize=9)
+
+
+
+    # PIE 2: Area proportions (just above the first pie)
+    inset_ax2 = inset_axes(
+        ax,
+        width="20%",
+        height="20%",
+        loc='lower left',
+        borderpad=2,
+        bbox_to_anchor=(0.05, 0.28, 1, 1),
+        bbox_transform=ax.transAxes
+        )
+    # Plot bar chart
+    bar_labels = [str(label) for label in area_proportions.index]
+    bar_colors = [
+        cmap(dynamic_labels.index(label) / (len(dynamic_labels) - 1))
+        for label in area_proportions.index
+    ]
+
+    bars = inset_ax2.bar(bar_labels, area_proportions, color=bar_colors, edgecolor='black')
+
+    # Formatting
+    # Add value labels
+    for bar in bars:
+        height = bar.get_height()
+        inset_ax2.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.005,  # offset above the bar
+            f'{height*100:.1f}%',  # as percent
+            ha='center', va='bottom', fontsize=7, color='black'
+        )
+
+    # Clean visual style: no ticks, no axis frame
+    inset_ax2.set_xticks([])
+    inset_ax2.set_yticks([])
+    inset_ax2.spines['top'].set_visible(False)
+    inset_ax2.spines['right'].set_visible(False)
+    inset_ax2.spines['left'].set_visible(False)
+    inset_ax2.spines['bottom'].set_visible(False)
+    inset_ax2.set_facecolor((1, 1, 1, 0.0))  # fully transparent background
+    # Optional title
+    inset_ax2.set_title("Area Proportions (%)", fontsize=9)
+
+    # *************************************************************************
     # Add cluster legend manually
     if "Cluster" in ecoregions_gdf.columns:
         cluster_ids = sorted(ecoregions_gdf["Cluster"].dropna().unique())
