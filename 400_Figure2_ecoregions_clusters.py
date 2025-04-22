@@ -21,8 +21,17 @@ def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Add land features with an edge color
-    land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
-    ax.add_feature(land, edgecolor="black", linewidth=0.2)
+    land = cfeature.NaturalEarthFeature(
+        "physical", 
+        "land", 
+        "50m", 
+        facecolor="none"
+        )
+    ax.add_feature(
+        land, 
+        edgecolor="black", 
+        linewidth=0.2
+        )
 
     # Add gridlines with specified transparency and line width
     # ✅ Correct way to control gridline labels
