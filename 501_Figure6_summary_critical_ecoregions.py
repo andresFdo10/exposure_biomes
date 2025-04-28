@@ -128,6 +128,40 @@ def run():
     # ax.set_title("Ecoregions with Combined Exposure in All PCA Axes")
     # ax.axis("off")
 
+    # Manual alignment settings
+    # label_alignment = {
+    #     # Example:
+    #     '447': 'left',
+    #     '457': 'right',
+    #     '477': 'right',
+    #     '478': 'left',
+    #     '520': 'left',
+    #     '539': 'right',
+    #     '542': 'left',
+    #     # Add your actual ECO_IDs here
+    # }
+
+    # for idx, row in critical_gdf.iterrows():
+    #     x, y = row.geometry.centroid.x, row.geometry.centroid.y
+    #     align = label_alignment.get(row["ECO_ID"], "right")  # default to right
+    #     if align == "left":
+    #         offset_x = -1.5
+    #         ha = 'right'
+    #         arrowstyle = '<-'
+    #     else:
+    #         offset_x = 1.5
+    #         ha = 'left'
+    #         arrowstyle = '->'
+
+    #     ax.annotate(
+    #         row["ECO_NAME"], 
+    #         xy=(x, y), 
+    #         xytext=(x + offset_x, y + 1),
+    #         textcoords='data',
+    #         arrowprops=dict(arrowstyle=arrowstyle, color='black', lw=0.5),
+    #         fontsize=8,
+    #         ha=ha
+    #     )
     # Save the figure
     plt.savefig("outputs/figures/critical_ecoregions_all_combinations.png", dpi=300)
     plt.show()

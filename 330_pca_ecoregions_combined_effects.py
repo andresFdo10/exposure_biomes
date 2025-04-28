@@ -2,12 +2,22 @@ import pandas as pd
 import numpy as np
 
 def run():
+    """
+    Identify ecoregions strongly influenced by principal components and their combinations.
+
+    This function loads PCA-transformed data and loadings, identifies ecoregions
+    significantly influenced by each principal component (PC), and determines 
+    ecoregions affected by combinations of PCs. The results are saved to a CSV file.
+
+    Returns:
+    None
+    """
 
     # Load PCA-transformed dataset with ecoregion IDs and principal components
-    pca_df = pd.read_csv("outputs/csv/pca_reduced_data_with_clusters.csv")  # Update path
+    pca_df = pd.read_csv("outputs/csv/pca_reduced_data_with_clusters.csv")
 
-    # Load PCA loadings (to check which variables influence each PC)
-    loadings_df = pd.read_csv("outputs/csv/pca_loadings.csv", index_col=0)  # Update path
+    # Load PCA loadings to understand variable influence on each PC
+    loadings_df = pd.read_csv("outputs/csv/pca_loadings.csv", index_col=0)
 
     # Define thresholds for identifying significant effects (top and bottom 10% of PC values)
     threshold_high = 0.75  # Top 10%
@@ -15,29 +25,21 @@ def run():
 
     # Identify ecoregions strongly influenced by each PC
     top_pc1 = pca_df[pca_df["PC1"] >= pca_df["PC1"].quantile(threshold_high)]
-    print(f"top_pc1:\n {top_pc1}\n")
     bottom_pc1 = pca_df[pca_df["PC1"] <= pca_df["PC1"].quantile(threshold_low)]
 
     top_pc2 = pca_df[pca_df["PC2"] >= pca_df["PC2"].quantile(threshold_high)]
-    print(f"top_pc2:\n {top_pc2}\n")
     bottom_pc2 = pca_df[pca_df["PC2"] <= pca_df["PC2"].quantile(threshold_low)]
 
     top_pc3 = pca_df[pca_df["PC3"] >= pca_df["PC3"].quantile(threshold_high)]
-    print(f"top_pc3:\n {top_pc3}\n")
     bottom_pc3 = pca_df[pca_df["PC3"] <= pca_df["PC3"].quantile(threshold_low)]
 
     # Identify ecoregions affected by combined influences
-    combined_pc1_pc2 = pd.merge(top_pc1, top_pc2, on="ECO_ID", how="inner")  # Strong in PC1 & PC2
-    combined_pc1_pc3 = pd.merge(top_pc1, top_pc3, on="ECO_ID", how="inner")  # Strong in PC1 & PC3
-    combined_pc2_pc3 = pd.merge(top_pc2, top_pc3, on="ECO_ID", how="inner")  # Strong in PC2 & PC3
+    combined_pc1_pc2 = pd.merge(top_pc1, top_pc2, on="ECO_ID", how="inner")
+    combined_pc1_pc3 = pd.merge(top_pc1, top_pc3, on="ECO_ID", how="inner")
+    combined_pc2_pc3 = pd.merge(top_pc2, top_pc3, on="ECO_ID", how="inner")
 
     # Identify ecoregions affected by all three principal components
-    combined_all = pd.merge(
-        combined_pc1_pc2,
-        top_pc3,
-        on="ECO_ID",
-        how="inner"
-        )
+    combined_all = pd.merge(combined_pc1_pc2, top_pc3, on="ECO_ID", how="inner")
 
     # Create a summary DataFrame listing affected ecoregions
     combined_effects_df = pd.DataFrame({
@@ -56,15 +58,10 @@ def run():
     }).drop_duplicates()
 
     # Save the results
-    combined_effects_df.to_csv(
-        "outputs/csv/ecoregions_combined_effects.csv",
-        index=False
-        )
+    combined_effects_df.to_csv("outputs/csv/ecoregions_combined_effects.csv", index=False)
 
     # Display output
-    print(
-        "Ecoregions with combined effects identified and saved as"\
-        " outputs/csv/ecoregions_combined_effects.csv'")
+    print("Ecoregions with combined effects identified and saved as 'outputs/csv/ecoregions_combined_effects.csv'")
     print(combined_effects_df)
 
 if __name__ == "__main__":

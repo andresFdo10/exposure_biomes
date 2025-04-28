@@ -53,8 +53,8 @@ def plot_exposure(ax, exposure_data, title, letter, cmap, extent):
     land = cfeature.NaturalEarthFeature("physical", "land", "50m", facecolor="none")
     ax.gridlines(linewidth=0.3, draw_labels=False)
     ax.text(
-        0.04,
-        1.06,
+        0.95,
+        0.95,
         letter,
         transform=ax.transAxes,
         fontsize=14,
@@ -108,7 +108,8 @@ def run():
         "Exposure El Niño",
         "Exposure La Niña",
     ]
-    letters = list(string.ascii_lowercase)[:2]
+    # letters = list(string.ascii_lowercase)[:2]
+    letters = ["(a)", "(b)"]
     cmaps = [cmap1, cmap2]  # Match colormap to event type
     # overlays = [coffea, coffea, theobroma, theobroma]
     # regions = ["coffea", "coffea", "theobroma", "theobroma"]

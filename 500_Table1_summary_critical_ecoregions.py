@@ -1,6 +1,20 @@
 import pandas as pd
 import geopandas as gpd
 def run():
+    """
+    This function loads a GeoPackage file and a CSV file, 
+    pivotizes the CSV file, and merges the two datasets.
+    The output is a CSV file with the ECO_ID, ECO_NAME, 
+    and three columns indicating the presence or absence 
+    of primary forest loss, primary forest gain, and 
+    fire-induced primary forest loss in the ecoregion.
+
+    Parameters:
+    None
+
+    Returns:
+    None
+    """
     path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"
     layer_name = "ZonalStat_Ecoregions"
     gdf = gpd.read_file(path_gpkg, layer=layer_name)
@@ -35,6 +49,10 @@ def run():
     pivot_df['combo_count'] = pivot_df[pc_columns].apply(lambda row: sum(val == 'X' for val in row), axis=1)
 
     def combination_code(row):
+        """
+        This function takes a pandas Series as input and returns a string
+        indicating which of the three PCA combinations is present.
+        """
         return ''.join(['1' if row[col] == 'X' else '0' for col in pc_columns])
 
     pivot_df['sort_key'] = pivot_df.apply(combination_code, axis=1)

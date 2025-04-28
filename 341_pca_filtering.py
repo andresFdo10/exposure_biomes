@@ -32,7 +32,7 @@ def run():
     combined_effects_df.to_csv("outputs/csv/top_10_percent_ecoregions_per_variable.csv", index=False)
     final_combined_df.to_csv("outputs/csv/ecoregions_with_combined_effects_2.csv", index=False)
     print(final_combined_df.drop_duplicates(subset=["ECO_ID"]))
-    # print(combined_effects_df)
+    print(combined_effects_df)
 
     print("Filtering complete. Results saved in 'outputs/csv' folder.")
 

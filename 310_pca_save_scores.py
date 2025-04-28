@@ -8,9 +8,30 @@ from sklearn.preprocessing import StandardScaler
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3):
     """
-    Perform PCA on selected columns of a dataframe and reduce dimensions to the desired number of components.
-    """
+    Perform Principal Component Analysis (PCA) on the specified columns of a dataframe and reduce the dimensions to the desired number of components.
 
+    Parameters
+    ----------
+    dataframe : pandas.DataFrame
+        Input dataframe containing the features to be analyzed.
+    columns : list
+        List of column names to be used for PCA.
+    variance_threshold : float, optional
+        Variance threshold to retain principal components (default is 0.9).
+    n_components : int, optional
+        Number of principal components to retain (default is 3).
+
+    Returns
+    -------
+    reduced_data : numpy.ndarray
+        Reduced data after PCA.
+    explained_variance_ratio : numpy.ndarray
+        Explained variance ratio for each principal component.
+    pca_loadings : numpy.ndarray
+        Principal component loadings (eigenvectors).
+    retained_indices : pandas.Index
+        Index of retained ECO_IDs.
+    """
     # Select relevant columns but retain index
     df = dataframe[columns].copy()
     
@@ -36,9 +57,16 @@ def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3):
 
 
 def run():
+    """
+    Example usage of the PCA function for dimensionality reduction.
+
+    1. Load the GeoPackage file and convert it to a pandas DataFrame.
+    2. Perform PCA on the selected columns with 3 components.
+    3. Save the transformed data as a new CSV file.
+    """
     # Example usage
-    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
-    layer_name = "zonal_statistics_v2"
+    path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"
+    layer_name = "ZonalStat_Ecoregions"
 
     # Load the GeoPackage file
     ecoregions_gdf = gpd.read_file(path_gpkg, layer=layer_name)
@@ -51,8 +79,9 @@ def run():
     selected_columns = [
         "EWMnino",
         "EWMnina",
-        "primaryLoss_rate",
-        "PrimaryLoss_Fires50%"
+        "PrimaryForest_Loss50",
+        "PrimaryLoss_Rate50",
+        "proportion_fire-induced_Primaryloss"
     ]
 
     # Perform PCA with only 3 components and keep retained indices
@@ -68,7 +97,7 @@ def run():
 
     # Save the PCA-transformed data with ECO_ID
     pca_df.to_csv("outputs/csv/pca_reduced_data.csv", index=False)
-    print("PCA-transformed data saved as 'outputs/csv/pca_reduced_data.csv' ✅")
+    print("PCA-transformed data saved as 'outputs/csv/pca_reduced_data.csv' ")
 
 if __name__ == "__main__":
     run()

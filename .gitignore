@@ -2,3 +2,15 @@ inputs/
 outputs/
 .venv/
 python_recycle/
+1000_essay.py
+essay.ipynb
+principal_components_Analysis.ipynb
+320_pca_plot_3D.py
+321_pca_point_out_ecoregions_all_effects_3D.py
+*.ipynb
+340_pca_Score_Ecoregions_by_Original_Variables.py
+300_pca_loadings_and_plot_2D.py
+310_pca_save_scores.py
+341_pca_filtering.py
+413_plot_critical_ecoregions_3D.py
+

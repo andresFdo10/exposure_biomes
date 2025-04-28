@@ -53,55 +53,66 @@ def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
     # ✅ Trigger rendering to populate label artists
     plt.draw()
 def run():
+    """
+    Main function to run the clustering analysis and generate the map with ecoregions
+    colored by their respective clusters.
 
-    # ✅ Step 1: Load the original GeoPackage with ecoregions
-    gpkg_path = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"  # Update this if needed
-    layer_name = "ZonalStat_Ecoregions"  # Update if your layer name is different
+    This function performs the following steps:
+
+    1. Loads the original GeoPackage with ecoregions.
+    2. Loads the PCA clusters CSV.
+    3. Merges the two datasets using the "ECO_ID" column.
+    4. Saves the merged dataset as a new GeoPackage file.
+    5. Loads the merged GeoPackage.
+    6. Plots the map with ecoregions colored by their respective clusters.
+    7. Adds a legend with cluster labels.
+    8. Saves the plot as a PNG file.
+    """
+    # Step 1: Load the original GeoPackage with ecoregions
+    gpkg_path = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"
+    layer_name = "ZonalStat_Ecoregions"
     ecoregions_gdf = gpd.read_file(gpkg_path, layer=layer_name)
 
-    # ✅ Step 2: Load the PCA clusters CSV
+    # Step 2: Load the PCA clusters CSV
     clusters_df = pd.read_csv("outputs/csv/pca_reduced_data_with_clusters.csv")
 
-    # ✅ Step 3: Merge using "ECO_ID" (keeping all ecoregions)
+    # Step 3: Merge using "ECO_ID" (keeping all ecoregions)
     merged_gdf = ecoregions_gdf.merge(clusters_df, on="ECO_ID", how="left")
 
-    # ✅ Step 4: Save as a new GeoPackage file
+    # Step 4: Save as a new GeoPackage file
     output_gpkg = "outputs/geopackages/ecoregions_with_clusters.gpkg"
     merged_gdf.to_file(output_gpkg, driver="GPKG", layer="ecoregions_clusters")
+    print(f" Merged GeoPackage saved at: {output_gpkg}")
 
-    print(f"✅ Merged GeoPackage saved at: {output_gpkg}")
-
-    # ✅ Step 1: Load the merged GeoPackage
+    # Step 5: Load the merged GeoPackage
     gpkg_path = "outputs/geopackages/ecoregions_with_clusters.gpkg"
-    layer_name = "ecoregions_clusters"
+    layer_name = "ecoregions_clusters_2"
     ecoregions_gdf = gpd.read_file(gpkg_path, layer=layer_name)
 
-    # ✅ Step 2: Handle NaN Values in Cluster Column
+    # Step 6: Handle NaN Values in Cluster Column
     if "Cluster" not in ecoregions_gdf.columns:
-        raise ValueError("⚠️ The 'Cluster' column is missing in the GeoPackage!")
+        raise ValueError(" The 'Cluster' column is missing in the GeoPackage!")
 
-    # ✅ Step 1: Get unique valid clusters (excluding -1)
+    # Step 7: Get unique valid clusters (excluding -1)
     valid_clusters = sorted([c for c in ecoregions_gdf["Cluster"].unique() if c != -1])
     num_clusters = len(valid_clusters)
 
-    # ✅ Step 4: Define a Custom Colormap
+    # Step 8: Define a Custom Colormap
     cmap = plt.get_cmap("viridis", num_clusters)  # Use a discrete colormap for clusters
     norm = mcolors.Normalize(vmin=min(valid_clusters), vmax=max(valid_clusters))
 
-    # ✅ Step 5: Assign Colors (Make `-1` Transparent)
+    # Step 9: Assign Colors (Make `-1` Transparent)
     color_dict = {c: cmap(norm(c)) for c in valid_clusters if c != -1}  # Normal clusters
     color_dict[-1] = (0, 0, 0, 0)  # RGBA → Transparent for `-1`
 
-    # ✅ Step 6: Map Colors to Data
+    # Step 10: Map Colors to Data
     ecoregions_gdf["color"] = ecoregions_gdf["Cluster"].map(color_dict)
-    
+
     # Remove Ecoregions without Primary Forest
-    ecoregions_gdf = ecoregions_gdf.dropna(subset=['Cluster'])
+    ecoregions_gdf = ecoregions_gdf.dropna(subset=["Cluster"])
 
-
-    # *************************************************************************
     # Count occurrences of each category
-    counts = ecoregions_gdf['Cluster'].value_counts().sort_index()
+    counts = ecoregions_gdf["Cluster"].value_counts().sort_index()
     labels = counts.index
     dynamic_labels = [label for label in labels]
 
@@ -117,25 +128,14 @@ def run():
     area_per_cluster = ecoregions_gdf.groupby("Cluster")["area km2"].sum()
     area_per_cluster = area_per_cluster[area_per_cluster.index.isin(labels)]  # ensure consistent ordering
     area_proportions = area_per_cluster / area_per_cluster.sum()
-    # print(f"Area proportion\n{area_proportions}")
-
-
+    print(f"Area proportion\n{area_proportions}")
     # *************************************************************************
 
+    # *****  Step 11: Create a Figure ***** 
+    fig, ax = plt.subplots(figsize=(12, 8), subplot_kw={"projection": ccrs.PlateCarree()})
 
-    # ***** ✅ Step 7: Create a Figure ***** 
-    fig, ax = plt.subplots(
-        figsize=(12, 8), 
-        subplot_kw={"projection": ccrs.PlateCarree()}
-        )
-
-    # ✅ Step 8: Plot the Map with Transparent `-1`
-    ecoregions_gdf.plot(
-        color=ecoregions_gdf["color"],  # Uses pre-defined colors
-        edgecolor="black", 
-        linewidth=0.05,
-        ax=ax
-    )
+    # Step 12: Plot the Map with Transparent `-1`
+    ecoregions_gdf.plot(color=ecoregions_gdf["color"], edgecolor="black", linewidth=0.05, ax=ax)
 
     # Define your cluster labels
     cluster_labels = {
@@ -197,8 +197,6 @@ def run():
     inset_ax1.spines['bottom'].set_visible(False)
     inset_ax1.set_title("Ecoregion Count (% of 150)", fontsize=9)
 
-
-
     # PIE 2: Area proportions (just above the first pie)
     inset_ax2 = inset_axes(
         ax,
@@ -208,7 +206,7 @@ def run():
         borderpad=2,
         bbox_to_anchor=(0.05, 0.28, 1, 1),
         bbox_transform=ax.transAxes
-        )
+    )
     # Plot bar chart
     bar_labels = [str(label) for label in area_proportions.index]
     bar_colors = [
@@ -250,27 +248,6 @@ def run():
         handles = []
         for cid in cluster_ids:
             color = cmap(norm(cid))
-            label = cluster_labels.get(cid, f"Cluster {cid}")
-            patch = mpatches.Patch(color=color, label=label)
-            handles.append(patch)
-
-        ax.legend(
-            handles=handles, 
-            title="Clusters", 
-            loc="best", 
-            fontsize=10, 
-            title_fontsize=11
-            )
-
-    add_features(ax, extent=(-110, -33.9, -40.5, 28.5))
-    # ✅ Step 10: Finalize Plot
-    # ax.set_title("Ecoregions Colored by Clusters (Transparent -1)", fontsize=16)
-    # ax.set_axis_off()  # Hide axis for a cleaner look
-
-    plt.savefig("./outputs/figures/Ecoregions_Cluster.png", dpi=300, bbox_inches='tight')
-
-    # ✅ Step 11: Force Show Plot
-    plt.show()
 
 
 if __name__ == '__main__':
