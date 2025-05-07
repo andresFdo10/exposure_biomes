@@ -13,6 +13,7 @@ import seaborn as sns
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from matplotlib.colors import ListedColormap
 
 def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
@@ -167,6 +168,15 @@ def plot_pca_clusters_with_map(
     gdf = gdf.dropna(subset=["ECO_ID"])
     highlighted_map = gdf[gdf["ECO_ID"].isin(ids)]
     highlighted_scores = PC_scores[PC_scores["ECO_ID"].isin(ids)]
+    colors = [
+        '#332288',  
+        '#ddcc77', 
+        '#44aa99', 
+        '#aa4499',
+        ]  
+
+    # colors = ['#4B0082', '#DAA520', '#008080', '#DC143C']
+    cmap = ListedColormap(colors)
 
     # Start plot
     fig = plt.figure(figsize=(12, 6))
@@ -180,7 +190,7 @@ def plot_pca_clusters_with_map(
         PC_scores[pc_x_col] * scale_x,
         PC_scores[pc_y_col] * scale_y,
         c=clusters,
-        cmap="viridis",
+        cmap=cmap,
         alpha=0.7,
         s=50
     )
@@ -198,7 +208,7 @@ def plot_pca_clusters_with_map(
     # Add cluster legend manually
     if "Cluster" in PC_scores.columns:
         cluster_ids = sorted(PC_scores["Cluster"].dropna().unique())
-        cmap = plt.get_cmap("viridis")
+        cmap = plt.get_cmap(cmap)
         norm = plt.Normalize(vmin=min(cluster_ids), vmax=max(cluster_ids))
 
         handles = []
@@ -252,7 +262,7 @@ def plot_pca_clusters_with_map(
         'La Niña EWI': 'left',
         'Forest Loss': 'left',
         'Forest Loss Rate': 'left',
-        'Fire-Induced Loss %': 'left'
+        'Fire-Induced Loss %': 'right'
     }
     # Vertical alignment per feature
     vertical_alignment = {
@@ -291,7 +301,7 @@ def plot_pca_clusters_with_map(
         # Apply rotation only to selected labels
         if label_rotation.get(feature, False):
             # angle = np.degrees(np.arctan2(y, x))
-            rotation = 15
+            rotation = 20
             rotation_mode = 'anchor'
         else:
             rotation = 0

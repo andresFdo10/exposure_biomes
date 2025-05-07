@@ -10,6 +10,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from matplotlib.colors import ListedColormap
 
 def add_features(ax, extent  = (-105, -33.9, -31.5, 23.8)):
     # Add coastlines
@@ -98,7 +99,24 @@ def run():
     num_clusters = len(valid_clusters)
 
     # Step 8: Define a Custom Colormap
-    cmap = plt.get_cmap("viridis", num_clusters)  # Use a discrete colormap for clusters
+    # Define custom colorblind-friendly palette
+    # colors = ['#0072B2', '#009E73', '#E69F00', '#CC79A7']  # CUD palette
+    # colors = ['#1b9e77',  # green-teal
+    #       '#7570b3',  # purple-blue
+    #       '#d95f02',  # orange
+    #       '#e7298a']  # pink
+
+
+    colors = [
+        '#332288',  # purple-blue
+        '#ddcc77',  # Orange
+        '#44aa99', # Yellow
+        '#aa4499',  # Bluish Green
+        ]  
+
+    # colors = ['#4B0082', '#DAA520', '#008080', '#DC143C']
+    cmap = ListedColormap(colors)
+    # cmap = plt.get_cmap("cividis", num_clusters)  # Use a discrete colormap for clusters
     norm = mcolors.Normalize(vmin=min(valid_clusters), vmax=max(valid_clusters))
 
     # Step 9: Assign Colors (Make `-1` Transparent)
@@ -116,7 +134,7 @@ def run():
     labels = counts.index
     dynamic_labels = [label for label in labels]
 
-    cmap = cm.viridis
+    # cmap = cm.viridis
     colors = []
 
     for label in labels:
@@ -242,12 +260,34 @@ def run():
     # Add cluster legend manually
     if "Cluster" in ecoregions_gdf.columns:
         cluster_ids = sorted(ecoregions_gdf["Cluster"].dropna().unique())
-        cmap = plt.get_cmap("viridis")
+        cmap =  cmap#plt.get_cmap("cividis")
         norm = plt.Normalize(vmin=min(cluster_ids), vmax=max(cluster_ids))
 
         handles = []
         for cid in cluster_ids:
             color = cmap(norm(cid))
+            label = cluster_labels.get(cid, f"Cluster {cid}")
+            patch = mpatches.Patch(color=color, label=label)
+            handles.append(patch)
+
+        ax.legend(
+            handles=handles, 
+            title="Clusters", 
+            loc="best", 
+            fontsize=10, 
+            title_fontsize=11
+            )
+
+    add_features(ax, extent=(-110, -33.9, -40.5, 28.5))
+    # ✅ Step 10: Finalize Plot
+    # ax.set_title("Ecoregions Colored by Clusters (Transparent -1)", fontsize=16)
+    # ax.set_axis_off()  # Hide axis for a cleaner look
+    plt.tight_layout()
+
+    plt.savefig("./outputs/figures/Ecoregions_Cluster.png", dpi=300, bbox_inches='tight')
+
+    # ✅ Step 11: Force Show Plot
+    plt.show()
 
 
 if __name__ == '__main__':
