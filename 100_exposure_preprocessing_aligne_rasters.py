@@ -40,6 +40,7 @@ def run():
     # Save each aligned raster separately
     for (filename, original_raster), aligned_raster in zip(rasters.items(), aligned_rasters):
         # Construct the output path
+        # output_path = os.path.join(output_folder, f"aligned_{filename}")
         output_path = os.path.join(output_folder, f"aligned_{filename}")
 
         # Save the aligned raster
