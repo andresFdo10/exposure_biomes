@@ -27,6 +27,9 @@ def run():
     df = pd.read_csv('outputs/csv/ecoregions_combined_effects.csv') 
     print(df.head())
 
+    # Load the csv file with cluster information
+    clusters_df = pd.read_csv('outputs/csv/clusterAnalysis.csv')
+
     # Assign a marker
     df['mark'] = 'X'
 
@@ -66,6 +69,8 @@ def run():
 
     # Merge with summary table using ECO_ID
     merged_df = pd.merge(pivot_df, eco_names, on="ECO_ID", how="left")
+    
+    # merged_df = pd.merge(merged_df, clusters_df, on="ECO_ID", how="left")
 
     # Optional: reorder columns so ECO_NAME appears next to ECO_ID
     col_order = ['ECO_ID', 'ECO_NAME', 'PC1 & PC2', 'PC1 & PC3', 'PC2 & PC3']

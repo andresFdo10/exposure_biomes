@@ -21,11 +21,11 @@ def run():
     None
     """
     # Define input/output folders
-    # raster_folder = "./inputs/raster/biogeography/"
-    raster_folder = "./inputs/03_rasters/biogeography/correlations_before_after/before/"
+    raster_folder = "./inputs/03_rasters/correlations/"
+    # raster_folder = "./inputs/03_rasters/biogeography/correlations_before_after/before/"
     # raster_folder = "./inputs/03_rasters/biogeography/correlations_before_after/after/"
-    # output_folder = "./outputs/raster/"
-    output_folder = "./outputs/raster/correlations_before_after/"
+    output_folder = "./outputs/raster/"
+    # output_folder = "./outputs/raster/correlations_before_after/"
     os.makedirs(output_folder, exist_ok=True) # Ensure output folder exists
 
     # Find all .tif files in the folder

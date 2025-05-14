@@ -10,13 +10,7 @@ from sklearn.metrics import silhouette_score
 import seaborn as sns
 
 
-def perform_pca(
-    dataframe, 
-    columns, 
-    variance_threshold=0.9, 
-    n_components=3, 
-    n_clusters=4
-):
+def perform_pca(dataframe, columns, variance_threshold=0.9, n_components=3, n_clusters=4):
     """
     Perform Principal Component Analysis (PCA) on selected columns of a dataframe 
     and apply K-Means clustering.
@@ -264,7 +258,7 @@ def plot_pca_clusters(PC_scores, pca_loadings, explained_variance, pc_x=1, pc_y=
         )
 
     # Show plot
-    plt.show()
+    # plt.show()
 
 
 def plot_elbow_method(data, max_clusters=10):
@@ -298,7 +292,7 @@ def plot_elbow_method(data, max_clusters=10):
     plt.savefig(os.path.join(output_dir, "elbow_method.png"), dpi=300)
 
     # Show plot
-    plt.show()
+    # plt.show()
 
 def add_literals(axes, literal, x, y):
     """
@@ -401,7 +395,7 @@ def plot_explained_variance(pca_model):
     plt.legend()
     plt.tight_layout()
     plt.savefig("outputs/figures/pca_explained_variance.png", dpi=300)
-    plt.show()
+    # plt.show()
 
 def plot_scree_plot(pca_model):
     """
@@ -415,7 +409,7 @@ def plot_scree_plot(pca_model):
     plt.grid(True)
     plt.tight_layout()
     # plt.savefig("outputs/figures/pca_scree_plot.png", dpi=300)
-    plt.show()
+    # plt.show()
 
 def plot_scree_plot_kr(pca_model):
     """
@@ -431,7 +425,7 @@ def plot_scree_plot_kr(pca_model):
     plt.grid(True)
     plt.tight_layout()
     # plt.savefig("outputs/figures/pca_scree_plot.png", dpi=300)
-    plt.show()
+    # plt.show()
 
 
 def run():

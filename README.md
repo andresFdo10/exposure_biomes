@@ -68,7 +68,9 @@ Other requirements:
 | **001_oni_terraclimate_correlations.js** | Filters TerraClimate variables for El Niño and La Niña periods using ONI Index. |
 | **002_zonal_statistic_gee.js** | Extracts zonal statistics from selected variables. |
 | **100_exposure_preprocessing_aligne_rasters.py** | Aligns raster datasets based on ONI–TerraClimate correlations. |
+| **101_aligne_rasters_for_comparasion.py** | Aligns raster datasets based on ONI–TerraClimate correlations to build entropy weight indices of different periods. |
 | **110_exposure_index_EWM.py** | Calculates the exposure index using the Entropy Weight Method. |
+| **120_figures_S1-S2-oni-terraclimate_correlations.py** | Generates Figures S1 and S2: maps of TerraClimate–ONI correlation impacts. |
 | **120_exposure_plot.py** | Generates a pixel-level plot of the exposure index. |
 | **200_pre-processing_merge_datasets.py** | Merges datasets into a single GeoPackage. |
 | **210_cumulative_exposure_plot.py** | Creates spatial distribution maps of environmental variables (Figure 1). |
@@ -76,7 +78,6 @@ Other requirements:
 | **330_pca_ecoregions_combined_effects.py** | Identifies ecoregions influenced by PC combinations. |
 | **400_Figure2_ecoregions_clusters.py** | Generates clustered maps of ecoregions (Figure 2). |
 | **500_Table1_summary_critical_ecoregions.py** | Summarizes critical ecoregions in a CSV table. |
-| **502_TerraClimate_ONI_correlations_Figures_S1-S2.py** | Generates Figures S1 and S2: maps of TerraClimate–ONI correlation impacts. |
 
 </details>
 

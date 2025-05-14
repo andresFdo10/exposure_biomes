@@ -20,8 +20,10 @@ def exposure_signal(var, enso):
     """
 
     # Build the path to the input raster
-    # path = f"./outputs/raster/aligned_{var}_{enso}_60yrs.tif"
-    path = f"./outputs/raster/correlations_before_after/aligned_{var}_{enso}_60yrs.tif"
+    path = f"./outputs/raster/aligned_{var}_{enso}_60yrs.tif"
+
+    # Uncomment the following lines if you want to use the aligned rasters for the before and after
+    # path = f"./outputs/raster/correlations_before_after/aligned_{var}_{enso}_60yrs.tif"
     # path = f"./outputs/raster/correlations_before_after/aligned_{var}_{enso}_before.tif"
     # path = f"./outputs/raster/correlations_before_after/aligned_{var}_{enso}_after.tif"
 
@@ -219,9 +221,12 @@ def run(enso):
     plt.show()
 
     # Save the result to a GeoTIFF
-    # exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}.tif")
+    exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}.tif")
+
+    # Uncomment the following lines to save these results separately for the "before", "after", and "60 years" if needed the comparison
     # exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}_before.tif")
-    exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}_60yrs.tif")
+    # exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}_after.tif")
+    # exposure_index.rio.to_raster(f"./outputs/raster/exposure_EWM_{enso}_60yrs.tif")
 
 if __name__ == "__main__":
     run(enso="nina")

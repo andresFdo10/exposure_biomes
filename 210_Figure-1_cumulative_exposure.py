@@ -122,16 +122,7 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
     gdf = gpd.read_file(path_gpkg, layer=layer_name)
     borders = gpd.read_file(path_gpkg, layer=border_layer)
     
-    # Define columns to plot with their respective color ramps
-    # columns = [
-    #     ("EWMnino", "EWM Nino Median", "OrRd", (0, 1)),
-    #     ("EWMnina","EWM Nina Median", "Blues", (0, 1)),
-    #     ("primaryLoss_rate", "Tree Cover Loss Velocity (%/year)", "Greys", None),
-    #     ("PrimaryLoss_Fires50%", "Tree Cover Loss by fires (%)", "Greys", None)
-    # ]
     columns = [
-        # ("EWMnino", "EWM Nino Median", "OrRd", (0, 1)),
-        # ("EWMnina", "EWM Nina Median", "Blues", (0, 1)),
         ("PrimaryLoss_Rate50", "Annual primary forest loss rate (%/year)"),
         ("proportion_fire-induced_Primaryloss", "Fire-induced primary forest loss (%)"),
         ("PrimaryForest_Loss50", "Cumulative primary forest loss (ha)")
@@ -180,14 +171,22 @@ def plot_2x2_geopackage_data(path_gpkg, layer_name, border_layer):
 
 
 def run():
-    # Example usage
-    # path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
-    # layer_name = "zonal_statistics_v2"
-    borders_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"  # Replace with actual path
-    borders_layer = "Neotropic_Realm"  # Replace with actual layer name
-    # plot_2x2_geopackage_data(path_gpkg, layer_name, borders_layer)
+    """
+    Main function to run all the plotting functions.
 
-        # Example usage
+    Loads the data from a GeoPackage and plots two maps: one with the EWM
+    values for each ecoregion and another with other variables.
+
+    Parameters
+    ----------
+    path_gpkg : str
+        Path to the GeoPackage file containing the data.
+    layer_name : str
+        Name of the layer containing the data.
+    borders_layer : str
+        Name of the layer containing the borders of the ecoregions.
+    """
+
     # path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM_v2.gpkg"
     # layer_name = "zonal_statistics_v2"
     path_gpkg = "outputs/geopackages/ZonalStat_Ecoregions_EWM.gpkg"

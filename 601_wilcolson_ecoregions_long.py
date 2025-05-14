@@ -44,6 +44,7 @@ def run():
     axes[1].axis("off")
 
     plt.tight_layout()
+    plt.savefig("outputs/figures/fig_wicolxon_test.png")
     plt.show()
 
     # gdf.to_file("outputs/geopackages/EWI_before_after.gpkg", layer="EWI_before_after_wicolxon_test", driver="GPKG")

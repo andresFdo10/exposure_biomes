@@ -56,13 +56,15 @@ def run():
         results.append({
             'ECO_ID': getattr(region, 'ECO_ID', None),
             'Ecoregion': getattr(region, 'NAME', f'Region_{i}'),
+            'EWI_nino_before': before_nino.mean(),
+            'EWI_nino_after': after_nino.mean(),
             'Wilcoxon_p': p,
             'Median_Diff': median_diff
         })
 
     # Save or review results
     df = pd.DataFrame(results)
-    df.to_csv(os.path.join(folder_path, "ewi_el_nino_wilcoxon_results.csv"), index=False)
+    df.to_csv(os.path.join("outputs/csv/ewi_nino_wilcoxon.csv"), index=False)
     
 
     # Example statistical test loop (Wilcoxon per ecoregion)
@@ -84,13 +86,15 @@ def run():
         results.append({
             'ECO_ID': getattr(region, 'ECO_ID', None),
             'Ecoregion': getattr(region, 'NAME', f'Region_{i}'),
+            'EWI_nina_before': before_nina.mean(),
+            'EWI_nina_after': after_nina.mean(),
             'Wilcoxon_p': p,
             'Median_Diff': median_diff
         })
 
     # Save or review results
     df = pd.DataFrame(results)
-    df.to_csv(os.path.join(folder_path, "ewi_el_nina_wilcoxon_results.csv"), index=False)
+    df.to_csv(os.path.join("outputs/csv/ewi_nina_wilcoxon.csv"), index=False)
 
 if __name__ == "__main__":
     run()
