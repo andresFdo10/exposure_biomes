@@ -177,7 +177,8 @@ def moran_scatter_ecoregions(gdf, col, title):
 
     # --- scatterplot ---
     plt.figure(figsize=(6, 6))
-    wz = np.asarray(mi.wz)
+    # wz = np.asarray(mi.wz)
+    wz = np.asarray(getattr(mi, "wz", lag_spatial(w, mi.z)))
     plt.scatter(mi.z, wz, s=30, alpha=0.7, edgecolor="k")
     plt.axhline(0, color="grey", linewidth=1)
     plt.axvline(0, color="grey", linewidth=1)
