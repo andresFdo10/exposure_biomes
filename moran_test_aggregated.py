@@ -7,7 +7,7 @@ import warnings
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from libpysal.weights import Queen, KNN
+from libpysal.weights import Queen, KNN, lag_spatial
 from esda.moran import Moran
 import matplotlib.pyplot as plt
 
