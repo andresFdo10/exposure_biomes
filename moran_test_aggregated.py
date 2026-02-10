@@ -7,7 +7,7 @@ import warnings
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from libpysal.weights import Queen, KNN
+from libpysal.weights import Queen, KNN, lag_spatial
 from esda.moran import Moran
 import matplotlib.pyplot as plt
 
@@ -122,7 +122,13 @@ def moran_knn_clean(
     centroids = gdf.geometry.centroid
     coords = np.column_stack([centroids.x.to_numpy(), centroids.y.to_numpy()])
 
-    w = KNN.from_array(coords, k=k)
+    n = len(gdf)
+    if n < 3:
+        raise ValueError("At least 3 observations are required for Moran's I.")
+
+    k_eff = max(1, min(k, n - 1))
+
+    w = KNN.from_array(coords, k=k_eff)
     w.transform = "R"
 
     mi = Moran(x, w, permutations=permutations)
@@ -130,7 +136,7 @@ def moran_knn_clean(
     n_components = getattr(w, "n_components", None)
 
     return {
-        "method": f"knn_k{k}",
+        "method": f"knn_k{k_eff}",
         "variable": col,
         "n": int(mi.n),
         "I": float(mi.I),
@@ -141,7 +147,7 @@ def moran_knn_clean(
         "n_components": int(n_components) if n_components is not None else None,
         "weights_transform": "R",
         "permutations": int(permutations),
-        "k": int(k),
+        "k": int(k_eff),
     }
 # -----------------------------------------------------------------------------
 # 4) plot Monran I.
@@ -171,7 +177,8 @@ def moran_scatter_ecoregions(gdf, col, title):
 
     # --- scatterplot ---
     plt.figure(figsize=(6, 6))
-    plt.scatter(mi.z, mi.w, s=30, alpha=0.7, edgecolor="k")
+    wz = np.asarray(getattr(mi, "wz", lag_spatial(w, mi.z)))
+    plt.scatter(mi.z, wz, s=30, alpha=0.7, edgecolor="k")
     plt.axhline(0, color="grey", linewidth=1)
     plt.axvline(0, color="grey", linewidth=1)
 
