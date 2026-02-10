@@ -6,12 +6,6 @@ from esda.moran import Moran
 
 
 def moran_raster_knn(tif_path, sample_n=30000, k=8, seed=42):
-    import numpy as np
-    import rasterio
-    from rasterio.transform import xy
-    from libpysal.weights import KNN
-    from esda.moran import Moran
-
     rng = np.random.default_rng(seed)
 
     with rasterio.open(tif_path) as src:
@@ -22,10 +16,14 @@ def moran_raster_knn(tif_path, sample_n=30000, k=8, seed=42):
         if arr.ndim != 2:
             raise ValueError(f"Raster {tif_path} is not 2D")
 
+        finite = np.isfinite(arr)
         if nodata is not None:
-            valid = arr != nodata
+            if np.isnan(nodata):
+                valid = finite
+            else:
+                valid = finite & (arr != nodata)
         else:
-            valid = ~np.isnan(arr)
+            valid = finite
 
         rows, cols = np.where(valid)
         vals = arr[rows, cols].astype(float)
@@ -43,14 +41,19 @@ def moran_raster_knn(tif_path, sample_n=30000, k=8, seed=42):
         xs, ys = xy(transform, rows_s, cols_s, offset="center")
         coords = np.column_stack([xs, ys])
 
-    w = KNN.from_array(coords, k=k)
+    if take < 3:
+        raise ValueError("At least 3 valid sampled pixels are required for Moran's I.")
+
+    k_eff = max(1, min(k, take - 1))
+
+    w = KNN.from_array(coords, k=k_eff)
     w.transform = "R"
 
     mi = Moran(vals_s, w, permutations=999)
 
     return {
         "n": take,
-        "k": k,
+        "k": int(k_eff),
         "I": float(mi.I),
         "p_sim": float(mi.p_sim),
         "z_sim": float(mi.z_sim),
